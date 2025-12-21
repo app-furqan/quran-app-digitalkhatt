@@ -102,7 +102,7 @@ class _QuranReaderPageState extends State<QuranReaderPage> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
   bool _tajweedEnabled = true;
-  double _fontScale = 1.5;
+  int _fontSize = 0; // 0 = auto-fit (default), or specific px size like 48, 64, etc.
   String _lightBgColor = 'white'; // white, beige, sepia, gray
   String _darkBgColor = 'dark'; // dark, black, warm
 
@@ -248,21 +248,21 @@ class _QuranReaderPageState extends State<QuranReaderPage> {
                 leading: const Icon(Icons.text_fields),
                 title: const Text('Font Size'),
                 subtitle: Slider(
-                  value: _fontScale,
-                  min: 0.5,
-                  max: 2.0,
-                  divisions: 15,
-                  label: '${(_fontScale * 100).round()}%',
+                  value: _fontSize.toDouble(),
+                  min: 0,
+                  max: 100,
+                  divisions: 20,
+                  label: _fontSize == 0 ? 'Auto' : '${_fontSize}px',
                   onChanged: (value) {
                     setModalState(() {
                       setState(() {
-                        _fontScale = value;
+                        _fontSize = value.round();
                       });
                     });
                   },
                 ),
                 trailing: Text(
-                  '${(_fontScale * 100).round()}%',
+                  _fontSize == 0 ? 'Auto' : '${_fontSize}px',
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ),
@@ -374,11 +374,11 @@ class _QuranReaderPageState extends State<QuranReaderPage> {
         itemBuilder: (context, index) {
           return QuranPageWidget(
             key: ValueKey(
-              'page_${index}_${_tajweedEnabled}_${_fontScale}_${_lightBgColor}_${_darkBgColor}',
+              'page_${index}_${_tajweedEnabled}_${_fontSize}_${_lightBgColor}_${_darkBgColor}',
             ),
             pageIndex: index,
             tajweed: _tajweedEnabled,
-            fontScale: _fontScale,
+            fontSize: _fontSize,
             lightBackgroundColor: getLightBackgroundColor(),
             darkBackgroundColor: getDarkBackgroundColor(),
           );
