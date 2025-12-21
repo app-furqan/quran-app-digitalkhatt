@@ -169,7 +169,34 @@ quran-app-android/
 ## 🔧 Dependencies
 
 - **Flutter SDK** - Cross-platform UI framework
-- **DigitalKhatt Quran Renderer** - Native Arabic text rendering library
+- **DigitalKhatt Quran Renderer** - Native Arabic text rendering library (AAR)
+
+### Native Rendering Library (AAR)
+
+The app uses a native Android library (`.aar` file) for high-quality Quran text rendering with the **Digital Khatt** font. This AAR is generated from the following open-source project:
+
+**Repository:** [https://github.com/hussainak/quran-renderer.git](https://github.com/hussainak/quran-renderer.git)
+
+To build the AAR from source:
+
+1. **Clone the quran-renderer repository**
+   ```bash
+   git clone https://github.com/hussainak/quran-renderer.git
+   cd quran-renderer
+   ```
+
+2. **Build the AAR**
+   ```bash
+   ./gradlew assembleRelease
+   ```
+
+3. **Copy the generated AAR** to this project's `android/app/libs/` directory
+
+The AAR provides:
+- Digital Khatt font rendering engine
+- Tajweed color highlighting support
+- High-precision Arabic text layout
+- Optimized performance for Quran pages
 
 ## 📄 License
 

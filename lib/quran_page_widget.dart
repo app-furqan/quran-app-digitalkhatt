@@ -4,13 +4,13 @@ import 'package:flutter/services.dart';
 class QuranPageWidget extends StatefulWidget {
   final int pageIndex;
   final bool tajweed;
-  final double fontSize;
+  final double fontScale;
 
   const QuranPageWidget({
     super.key,
     required this.pageIndex,
     this.tajweed = true,
-    this.fontSize = 1.0,
+    this.fontScale = 1.0,
   });
 
   @override
@@ -30,8 +30,8 @@ class _QuranPageWidgetState extends State<QuranPageWidget> {
       if (oldWidget.tajweed != widget.tajweed) {
         _channel!.invokeMethod('setTajweed', {'enabled': widget.tajweed});
       }
-      if (oldWidget.fontSize != widget.fontSize) {
-        _channel!.invokeMethod('setFontSize', {'size': widget.fontSize});
+      if (oldWidget.fontScale != widget.fontScale) {
+        _channel!.invokeMethod('setFontScale', {'scale': widget.fontScale});
       }
     }
   }
@@ -46,7 +46,7 @@ class _QuranPageWidgetState extends State<QuranPageWidget> {
     final Map<String, dynamic> creationParams = {
       'pageIndex': widget.pageIndex,
       'tajweed': widget.tajweed,
-      'fontSize': widget.fontSize,
+      'fontScale': widget.fontScale,
     };
 
     return AndroidView(

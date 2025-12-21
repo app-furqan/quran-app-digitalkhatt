@@ -37,9 +37,3 @@ android {
 flutter {
     source = "../.."
 }
-
-dependencies {
-    // Use debug AAR for debug builds, release AAR for release builds
-    debugImplementation(files("libs/android-debug.aar"))
-    releaseImplementation(files("libs/android-release.aar"))
-}
