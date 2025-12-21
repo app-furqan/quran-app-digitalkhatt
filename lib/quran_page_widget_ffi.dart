@@ -36,7 +36,9 @@ class _QuranPageWidgetState extends State<QuranPageWidget> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.pageIndex != widget.pageIndex ||
         oldWidget.tajweed != widget.tajweed ||
-        oldWidget.fontScale != widget.fontScale) {
+        oldWidget.fontScale != widget.fontScale ||
+        oldWidget.lightBackgroundColor != widget.lightBackgroundColor ||
+        oldWidget.darkBackgroundColor != widget.darkBackgroundColor) {
       // Force re-render on next build
       _lastWidth = 0;
       _lastHeight = 0;
@@ -62,6 +64,10 @@ class _QuranPageWidgetState extends State<QuranPageWidget> {
       final bgColor = isDark
           ? widget.darkBackgroundColor
           : widget.lightBackgroundColor;
+
+      print(
+        '_renderPage: isDark=$isDark, bgColor=0x${bgColor.toRadixString(16)}, tajweed=${widget.tajweed}',
+      );
 
       // Render the page
       final pixels = QuranRenderer.renderPage(
