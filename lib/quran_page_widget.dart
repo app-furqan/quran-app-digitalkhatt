@@ -4,13 +4,13 @@ import 'package:flutter/services.dart';
 class QuranPageWidget extends StatefulWidget {
   final int pageIndex;
   final bool tajweed;
-  final double fontScale;
+  final double fontSize;
 
   const QuranPageWidget({
     super.key,
     required this.pageIndex,
     this.tajweed = true,
-    this.fontScale = 1.0,
+    this.fontSize = 1.0,
   });
 
   @override
@@ -30,8 +30,8 @@ class _QuranPageWidgetState extends State<QuranPageWidget> {
       if (oldWidget.tajweed != widget.tajweed) {
         _channel!.invokeMethod('setTajweed', {'enabled': widget.tajweed});
       }
-      if (oldWidget.fontScale != widget.fontScale) {
-        _channel!.invokeMethod('setFontScale', {'scale': widget.fontScale});
+      if (oldWidget.fontSize != widget.fontSize) {
+        _channel!.invokeMethod('setFontSize', {'size': widget.fontSize});
       }
     }
   }
@@ -46,10 +46,9 @@ class _QuranPageWidgetState extends State<QuranPageWidget> {
     final Map<String, dynamic> creationParams = {
       'pageIndex': widget.pageIndex,
       'tajweed': widget.tajweed,
-      'fontScale': widget.fontScale,
+      'fontSize': widget.fontSize,
     };
 
-    // Simply return the AndroidView - scaling is handled on the native side
     return AndroidView(
       viewType: viewType,
       creationParams: creationParams,

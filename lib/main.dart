@@ -43,10 +43,10 @@ class _QuranReaderPageState extends State<QuranReaderPage> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
   bool _tajweedEnabled = true;
-  double _fontSize = 1.0; // Font scale factor (1.0 = default)
+  double _fontSize = 1.0; // Font size multiplier (1.0 = default)
 
   static const int totalPages = 604;
-  static const double _minFontSize = 0.5;
+  static const double _minFontSize = 0.8;
   static const double _maxFontSize = 2.0;
   static const double _fontSizeStep = 0.1;
 
@@ -122,10 +122,8 @@ class _QuranReaderPageState extends State<QuranReaderPage> {
             onPressed: _fontSize > _minFontSize
                 ? () {
                     setState(() {
-                      _fontSize = (_fontSize - _fontSizeStep).clamp(
-                        _minFontSize,
-                        _maxFontSize,
-                      );
+                      _fontSize = (_fontSize - _fontSizeStep)
+                          .clamp(_minFontSize, _maxFontSize);
                     });
                   }
                 : null,
@@ -153,10 +151,8 @@ class _QuranReaderPageState extends State<QuranReaderPage> {
             onPressed: _fontSize < _maxFontSize
                 ? () {
                     setState(() {
-                      _fontSize = (_fontSize + _fontSizeStep).clamp(
-                        _minFontSize,
-                        _maxFontSize,
-                      );
+                      _fontSize = (_fontSize + _fontSizeStep)
+                          .clamp(_minFontSize, _maxFontSize);
                     });
                   }
                 : null,
@@ -203,7 +199,7 @@ class _QuranReaderPageState extends State<QuranReaderPage> {
           return QuranPageWidget(
             pageIndex: index,
             tajweed: _tajweedEnabled,
-            fontScale: _fontSize,
+            fontSize: _fontSize,
           );
         },
       ),
@@ -219,9 +215,8 @@ class _QuranReaderPageState extends State<QuranReaderPage> {
             IconButton(
               icon: const Icon(Icons.chevron_left),
               tooltip: 'Previous page',
-              onPressed: _currentPage > 0
-                  ? () => _goToPage(_currentPage - 1)
-                  : null,
+              onPressed:
+                  _currentPage > 0 ? () => _goToPage(_currentPage - 1) : null,
             ),
             Text(
               '${_currentPage + 1} / $totalPages',

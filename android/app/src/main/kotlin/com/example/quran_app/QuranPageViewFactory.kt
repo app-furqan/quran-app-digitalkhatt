@@ -1,6 +1,7 @@
 package com.example.quran_app
 
 import android.content.Context
+import android.view.View
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
@@ -25,20 +26,20 @@ class QuranPlatformView(
     messenger: BinaryMessenger
 ) : PlatformView, MethodChannel.MethodCallHandler {
     
-    private val quranView = QuranPageView(context)
+    private val scrollableView = ScrollableQuranView(context)
     private val methodChannel = MethodChannel(messenger, "quran_page_view_$viewId")
 
     init {
         methodChannel.setMethodCallHandler(this)
         
         creationParams?.let {
-            (it["pageIndex"] as? Int)?.let { page -> quranView.setPage(page) }
-            (it["tajweed"] as? Boolean)?.let { tajweed -> quranView.setTajweed(tajweed) }
-            (it["fontScale"] as? Double)?.let { scale -> quranView.setFontScale(scale.toFloat()) }
+            (it["pageIndex"] as? Int)?.let { page -> scrollableView.setPage(page) }
+            (it["tajweed"] as? Boolean)?.let { tajweed -> scrollableView.setTajweed(tajweed) }
+            (it["fontSize"] as? Double)?.let { size -> scrollableView.setFontSize(size.toFloat()) }
         }
     }
 
-    override fun getView() = quranView
+    override fun getView(): View = scrollableView
 
     override fun dispose() {
         methodChannel.setMethodCallHandler(null)
@@ -48,17 +49,17 @@ class QuranPlatformView(
         when (call.method) {
             "setPage" -> {
                 val page = call.argument<Int>("page") ?: 0
-                quranView.setPage(page)
+                scrollableView.setPage(page)
                 result.success(null)
             }
             "setTajweed" -> {
                 val enabled = call.argument<Boolean>("enabled") ?: true
-                quranView.setTajweed(enabled)
+                scrollableView.setTajweed(enabled)
                 result.success(null)
             }
-            "setFontScale" -> {
-                val scale = call.argument<Double>("scale") ?: 1.0
-                quranView.setFontScale(scale.toFloat())
+            "setFontSize" -> {
+                val size = call.argument<Double>("size") ?: 1.0
+                scrollableView.setFontSize(size.toFloat())
                 result.success(null)
             }
             else -> result.notImplemented()

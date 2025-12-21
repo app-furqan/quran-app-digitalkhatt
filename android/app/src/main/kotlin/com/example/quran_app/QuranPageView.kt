@@ -3,20 +3,17 @@ package com.example.quran_app
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
-import android.graphics.Matrix
-import android.graphics.Paint
 import android.view.View
+import android.widget.FrameLayout
 import android.widget.ScrollView
 import org.digitalkhatt.quran.renderer.QuranRenderer
 
 class QuranPageView(context: Context) : View(context) {
     private var pageIndex: Int = 0
     private var tajweed: Boolean = true
-    private var fontScale: Float = 1.0f
+    private var fontSize: Float = 1.0f
     private var bitmap: Bitmap? = null
     private val renderer = QuranRenderer.getInstance()
-    private val paint = Paint(Paint.FILTER_BITMAP_FLAG or Paint.ANTI_ALIAS_FLAG)
-    private val matrix = Matrix()
     private var baseWidth: Int = 0
     private var baseHeight: Int = 0
 
@@ -24,6 +21,7 @@ class QuranPageView(context: Context) : View(context) {
         if (pageIndex != page) {
             pageIndex = page
             bitmap = null
+            requestLayout()
             invalidate()
         }
     }
@@ -36,45 +34,76 @@ class QuranPageView(context: Context) : View(context) {
         }
     }
 
-    fun setFontScale(scale: Float) {
-        if (fontScale != scale) {
-            fontScale = scale
+    fun setFontSize(size: Float) {
+        if (fontSize != size) {
+            fontSize = size
             bitmap = null
+            requestLayout()
             invalidate()
         }
     }
 
-    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
-        super.onSizeChanged(w, h, oldw, oldh)
-        // Store the base dimensions on first layout
-        if (baseWidth == 0 || baseHeight == 0) {
-            baseWidth = w
-            baseHeight = h
-        }
-        bitmap = null
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        val parentWidth = MeasureSpec.getSize(widthMeasureSpec)
+        val parentHeight = MeasureSpec.getSize(heightMeasureSpec)
+        
+        // Store base dimensions on first measure
+        if (baseWidth == 0) baseWidth = parentWidth
+        if (baseHeight == 0) baseHeight = parentHeight
+        
+        // Calculate the scaled dimensions
+        val scaledWidth = (baseWidth * fontSize).toInt()
+        val scaledHeight = (baseHeight * fontSize).toInt()
+        
+        setMeasuredDimension(scaledWidth, scaledHeight)
     }
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         if (width <= 0 || height <= 0) return
 
-        // Use stored base dimensions for rendering
-        val renderWidth = if (baseWidth > 0) baseWidth else width
-        val renderHeight = if (baseHeight > 0) baseHeight else height
-
-        if (bitmap == null || bitmap!!.width != renderWidth || bitmap!!.height != renderHeight) {
+        // Render at the current measured size (which is scaled)
+        if (bitmap == null || bitmap!!.width != width || bitmap!!.height != height) {
             bitmap?.recycle()
-            bitmap = Bitmap.createBitmap(renderWidth, renderHeight, Bitmap.Config.ARGB_8888)
+            bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
             renderer.drawPage(bitmap!!, pageIndex, tajweed, true)
         }
         
-        // Apply uniform scaling from the center-top
-        matrix.reset()
-        val scaledWidth = renderWidth * fontScale
-        val offsetX = (width - scaledWidth) / 2f
-        matrix.postScale(fontScale, fontScale)
-        matrix.postTranslate(offsetX, 0f)
+        bitmap?.let { canvas.drawBitmap(it, 0f, 0f, null) }
+    }
+    
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        bitmap?.recycle()
+        bitmap = null
+    }
+}
+
+// Container that wraps QuranPageView in a ScrollView for scrolling when font is larger
+class ScrollableQuranView(context: Context) : FrameLayout(context) {
+    private val scrollView: ScrollView
+    val quranView: QuranPageView
+    
+    init {
+        scrollView = ScrollView(context).apply {
+            layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
+            isFillViewport = true
+            isVerticalScrollBarEnabled = true
+        }
         
-        bitmap?.let { canvas.drawBitmap(it, matrix, paint) }
+        quranView = QuranPageView(context).apply {
+            layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
+        }
+        
+        scrollView.addView(quranView)
+        addView(scrollView)
+    }
+    
+    fun setPage(page: Int) = quranView.setPage(page)
+    fun setTajweed(enabled: Boolean) = quranView.setTajweed(enabled)
+    fun setFontSize(size: Float) {
+        quranView.setFontSize(size)
+        // Scroll to top when font size changes
+        scrollView.scrollTo(0, 0)
     }
 }
