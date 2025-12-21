@@ -141,16 +141,31 @@ class _QuranPageWidgetState extends State<QuranPageWidget> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
+        // Get theme brightness for background
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        final bgColor = isDark
+            ? Theme.of(context).colorScheme.surface
+            : Colors.white;
+
         // Render at screen dimensions with dynamic height adjustment
         final pixelRatio = MediaQuery.of(context).devicePixelRatio;
         final renderWidth = (constraints.maxWidth * pixelRatio).toInt();
 
         // Dynamic height multiplier based on aspect ratio
-        // Wide screens (unfolded) need more height, narrow screens less
+        // Wide screens (unfolded): aspect > 0.8 needs significantly more height
+        // Narrow screens (folded): aspect <= 0.5 needs less height
         final aspectRatio = constraints.maxWidth / constraints.maxHeight;
-        final heightMultiplier = aspectRatio > 0.7 ? 1.3 : 1.1;
+        final heightMultiplier = aspectRatio > 0.8
+            ? 1.4 // Unfolded/tablet - more height for proper line spacing
+            : aspectRatio > 0.5
+            ? 1.2 // Medium screens
+            : 1.1; // Folded/narrow - less extra height
         final renderHeight =
             (constraints.maxHeight * pixelRatio * heightMultiplier).toInt();
+
+        print(
+          'aspectRatio=$aspectRatio, heightMultiplier=$heightMultiplier, size=${renderWidth}x$renderHeight',
+        );
 
         // Trigger render if size changed or no image yet
         if ((renderWidth != _lastWidth || renderHeight != _lastHeight) &&
@@ -161,20 +176,27 @@ class _QuranPageWidgetState extends State<QuranPageWidget> {
         }
 
         if (_isLoading || _image == null) {
-          return const Center(child: CircularProgressIndicator());
+          return Center(
+            child: CircularProgressIndicator(
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          );
         }
 
-        return InteractiveViewer(
-          minScale: 0.5,
-          maxScale: 4.0,
-          panEnabled: true,
-          scaleEnabled: true,
-          boundaryMargin: const EdgeInsets.all(0),
-          constrained: false,
-          child: RawImage(
-            image: _image,
-            width: constraints.maxWidth,
-            fit: BoxFit.fitWidth,
+        return Container(
+          color: bgColor,
+          child: InteractiveViewer(
+            minScale: 0.5,
+            maxScale: 4.0,
+            panEnabled: true,
+            scaleEnabled: true,
+            boundaryMargin: const EdgeInsets.all(0),
+            constrained: false,
+            child: RawImage(
+              image: _image,
+              width: constraints.maxWidth,
+              fit: BoxFit.fitWidth,
+            ),
           ),
         );
       },
