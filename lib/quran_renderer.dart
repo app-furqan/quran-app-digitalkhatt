@@ -49,6 +49,8 @@ final class QuranRenderConfig extends Struct {
   external int backgroundColor; // RGBA color as 0xRRGGBBAA
   @Int32()
   external int fontSize; // 0 = auto-fit to screen (default), or specific px size
+  @Bool()
+  external bool useForeground; // true = dark mode (light text on dark bg)
 }
 
 /// Surah information structure
@@ -281,6 +283,7 @@ class QuranRenderer {
     double fontScale = 1.0, // Deprecated, use fontSize instead
     int backgroundColor = 0xFFFFFFFF, // Default white (RRGGBBAA)
     int fontSize = 0, // 0 = auto-fit to screen (default)
+    bool useForeground = false, // true = dark mode (light text on dark bg)
   }) {
     _ensureInitialized();
 
@@ -305,9 +308,10 @@ class QuranRenderer {
     config.ref.fontScale = fontScale;
     config.ref.backgroundColor = backgroundColor;
     config.ref.fontSize = fontSize;
+    config.ref.useForeground = useForeground;
 
     print(
-      'renderPage: tajweed=$tajweed, justify=$justify, fontScale=$fontScale, fontSize=$fontSize',
+      'renderPage: tajweed=$tajweed, justify=$justify, fontSize=$fontSize, useForeground=$useForeground',
     );
 
     // Render

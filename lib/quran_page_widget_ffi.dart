@@ -77,6 +77,7 @@ class _QuranPageWidgetState extends State<QuranPageWidget> {
         tajweed: widget.tajweed,
         fontSize: widget.fontSize,
         backgroundColor: bgColor,
+        useForeground: isDark, // Dark mode uses light text on dark bg
       );
 
       print(
