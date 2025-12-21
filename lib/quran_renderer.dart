@@ -45,6 +45,8 @@ final class QuranRenderConfig extends Struct {
   external bool justify;
   @Float()
   external double fontScale;
+  @Uint32()
+  external int backgroundColor; // RGBA color as 0xAARRGGBB
 }
 
 /// Surah information structure
@@ -275,6 +277,7 @@ class QuranRenderer {
     bool tajweed = true,
     bool justify = true,
     double fontScale = 1.0,
+    int backgroundColor = 0xFFFFFFFF, // Default white
   }) {
     _ensureInitialized();
 
@@ -297,6 +300,7 @@ class QuranRenderer {
     config.ref.tajweed = tajweed;
     config.ref.justify = justify;
     config.ref.fontScale = fontScale;
+    config.ref.backgroundColor = backgroundColor;
 
     print(
       'renderPage: tajweed=$tajweed, justify=$justify, fontScale=$fontScale',

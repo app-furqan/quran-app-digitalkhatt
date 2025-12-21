@@ -103,8 +103,36 @@ class _QuranReaderPageState extends State<QuranReaderPage> {
   int _currentPage = 0;
   bool _tajweedEnabled = true;
   double _fontScale = 1.5;
+  String _lightBgColor = 'white'; // white, beige, sepia, gray
+  String _darkBgColor = 'dark'; // dark, black, warm
 
   static const int totalPages = 604;
+
+  int getLightBackgroundColor() {
+    switch (_lightBgColor) {
+      case 'beige':
+        return 0xFFF8F0FF; // Warm beige
+      case 'sepia':
+        return 0xF4ECD8FF; // Vintage sepia
+      case 'gray':
+        return 0xF5F5F5FF; // Soft gray
+      case 'white':
+      default:
+        return 0xFFFFFFFF; // Pure white
+    }
+  }
+
+  int getDarkBackgroundColor() {
+    switch (_darkBgColor) {
+      case 'black':
+        return 0x000000FF; // True black (OLED)
+      case 'warm':
+        return 0x2C2416FF; // Warm dark
+      case 'dark':
+      default:
+        return 0x1E1E1EFF; // Standard dark gray
+    }
+  }
 
   @override
   void dispose() {
@@ -252,6 +280,52 @@ class _QuranReaderPageState extends State<QuranReaderPage> {
                   });
                 },
               ),
+              const Divider(),
+              // Light mode background
+              ListTile(
+                leading: const Icon(Icons.wb_sunny),
+                title: const Text('Light Background'),
+                trailing: DropdownButton<String>(
+                  value: _lightBgColor,
+                  items: const [
+                    DropdownMenuItem(value: 'white', child: Text('White')),
+                    DropdownMenuItem(value: 'beige', child: Text('Beige')),
+                    DropdownMenuItem(value: 'sepia', child: Text('Sepia')),
+                    DropdownMenuItem(value: 'gray', child: Text('Gray')),
+                  ],
+                  onChanged: (value) {
+                    if (value != null) {
+                      setModalState(() {
+                        setState(() {
+                          _lightBgColor = value;
+                        });
+                      });
+                    }
+                  },
+                ),
+              ),
+              // Dark mode background
+              ListTile(
+                leading: const Icon(Icons.nightlight_round),
+                title: const Text('Dark Background'),
+                trailing: DropdownButton<String>(
+                  value: _darkBgColor,
+                  items: const [
+                    DropdownMenuItem(value: 'dark', child: Text('Dark Gray')),
+                    DropdownMenuItem(value: 'black', child: Text('Black')),
+                    DropdownMenuItem(value: 'warm', child: Text('Warm')),
+                  ],
+                  onChanged: (value) {
+                    if (value != null) {
+                      setModalState(() {
+                        setState(() {
+                          _darkBgColor = value;
+                        });
+                      });
+                    }
+                  },
+                ),
+              ),
               const SizedBox(height: 16),
             ],
           ),
@@ -299,10 +373,14 @@ class _QuranReaderPageState extends State<QuranReaderPage> {
         },
         itemBuilder: (context, index) {
           return QuranPageWidget(
-            key: ValueKey('page_${index}_${_tajweedEnabled}_$_fontScale'),
+            key: ValueKey(
+              'page_${index}_${_tajweedEnabled}_${_fontScale}_${_lightBgColor}_${_darkBgColor}',
+            ),
             pageIndex: index,
             tajweed: _tajweedEnabled,
             fontScale: _fontScale,
+            lightBackgroundColor: getLightBackgroundColor(),
+            darkBackgroundColor: getDarkBackgroundColor(),
           );
         },
       ),

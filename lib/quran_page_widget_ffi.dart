@@ -8,12 +8,16 @@ class QuranPageWidget extends StatefulWidget {
   final int pageIndex;
   final bool tajweed;
   final double fontScale;
+  final int lightBackgroundColor;
+  final int darkBackgroundColor;
 
   const QuranPageWidget({
     super.key,
     required this.pageIndex,
     this.tajweed = true,
     this.fontScale = 1.0,
+    this.lightBackgroundColor = 0xFFFFFFFF,
+    this.darkBackgroundColor = 0x1E1E1EFF,
   });
 
   @override
@@ -53,6 +57,12 @@ class _QuranPageWidgetState extends State<QuranPageWidget> {
     try {
       print('_renderPage: Rendering ${width}x${height} pixels');
 
+      // Get background color based on theme
+      final isDark = Theme.of(context).brightness == Brightness.dark;
+      final bgColor = isDark
+          ? widget.darkBackgroundColor
+          : widget.lightBackgroundColor;
+
       // Render the page
       final pixels = QuranRenderer.renderPage(
         pageIndex: widget.pageIndex,
@@ -60,6 +70,7 @@ class _QuranPageWidgetState extends State<QuranPageWidget> {
         height: height,
         tajweed: widget.tajweed,
         fontScale: widget.fontScale,
+        backgroundColor: bgColor,
       );
 
       print(
@@ -183,20 +194,18 @@ class _QuranPageWidgetState extends State<QuranPageWidget> {
           );
         }
 
-        return Container(
-          color: bgColor,
-          child: InteractiveViewer(
-            minScale: 0.5,
-            maxScale: 4.0,
-            panEnabled: true,
-            scaleEnabled: true,
-            boundaryMargin: const EdgeInsets.all(0),
-            constrained: false,
-            child: RawImage(
-              image: _image,
-              width: constraints.maxWidth,
-              fit: BoxFit.fitWidth,
-            ),
+        return InteractiveViewer(
+          minScale: 0.5,
+          maxScale: 4.0,
+          panEnabled: true,
+          scaleEnabled: true,
+          boundaryMargin: const EdgeInsets.all(0),
+          constrained: false,
+          alignment: Alignment.topCenter,
+          child: RawImage(
+            image: _image,
+            width: constraints.maxWidth,
+            fit: BoxFit.fitWidth,
           ),
         );
       },
