@@ -17,7 +17,7 @@ class QuranPageWidget extends StatefulWidget {
     this.tajweed = true,
     this.fontSize = 0, // 0 = auto-fit to screen
     this.lightBackgroundColor = 0xFFFFFFFF,
-    this.darkBackgroundColor = 0x1E1E1EFF,
+    this.darkBackgroundColor = 0xFF1E1E1E,
   });
 
   @override
