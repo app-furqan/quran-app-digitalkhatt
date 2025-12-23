@@ -26,41 +26,35 @@ if [ ! -d "$BUILD_OUTPUT" ]; then
     exit 1
 fi
 
-# Android architectures
-ANDROID_ABIS=("arm64-v8a" "armeabi-v7a" "x86_64")
-JNILIBS_DIR="$SCRIPT_DIR/android/app/src/main/jniLibs"
+# Define library mappings (source -> destination)
+declare -A LIB_MAP=(
+    ["android-arm64-v8a"]="android/app/src/main/jniLibs/arm64-v8a"
+    ["android-armeabi-v7a"]="android/app/src/main/jniLibs/armeabi-v7a"
+    ["android-x86_64"]="android/app/src/main/jniLibs/x86_64"
+    ["linux-x86_64"]="linux/libs"
+)
 
-echo "📱 Updating Android libraries..."
-for abi in "${ANDROID_ABIS[@]}"; do
-    src="$BUILD_OUTPUT/android-$abi/libquranrenderer.so"
-    dst="$JNILIBS_DIR/$abi/libquranrenderer.so"
+echo "📦 Copying libraries..."
+for src_name in "${!LIB_MAP[@]}"; do
+    src="$BUILD_OUTPUT/$src_name/libquranrenderer.so"
+    dst_dir="$SCRIPT_DIR/${LIB_MAP[$src_name]}"
+    dst="$dst_dir/libquranrenderer.so"
     
     if [ -f "$src" ]; then
+        mkdir -p "$dst_dir"
         cp "$src" "$dst"
-        echo "   ✅ $abi: $(ls -lh "$dst" | awk '{print $5}')"
+        size=$(ls -lh "$dst" | awk '{print $5}')
+        echo "   ✅ $src_name → ${LIB_MAP[$src_name]} ($size)"
     else
-        echo "   ⚠️  $abi: Source not found, skipping"
+        echo "   ⚠️  $src_name: Source not found, skipping"
     fi
 done
-
-# Linux
-echo ""
-echo "🐧 Updating Linux library..."
-LINUX_SRC="$BUILD_OUTPUT/linux-x86_64/libquranrenderer.so"
-LINUX_DST="$SCRIPT_DIR/linux/libs/libquranrenderer.so"
-
-if [ -f "$LINUX_SRC" ]; then
-    mkdir -p "$(dirname "$LINUX_DST")"
-    cp "$LINUX_SRC" "$LINUX_DST"
-    echo "   ✅ x86_64: $(ls -lh "$LINUX_DST" | awk '{print $5}')"
-else
-    echo "   ⚠️  Linux library not found, skipping"
-fi
 
 # Verify symbols
 echo ""
 echo "🔍 Verifying exported symbols..."
-if command -v nm &> /dev/null; then
+JNILIBS_DIR="$SCRIPT_DIR/android/app/src/main/jniLibs"
+if command -v nm &> /dev/null && [ -f "$JNILIBS_DIR/arm64-v8a/libquranrenderer.so" ]; then
     SYMBOLS=$(nm -D "$JNILIBS_DIR/arm64-v8a/libquranrenderer.so" 2>/dev/null | grep -c "quran_renderer_" || echo "0")
     echo "   Found $SYMBOLS quran_renderer_* symbols"
     
@@ -73,7 +67,7 @@ if command -v nm &> /dev/null; then
         fi
     done
 else
-    echo "   ⚠️  'nm' command not found, skipping verification"
+    echo "   ⚠️  'nm' command not found or library missing, skipping verification"
 fi
 
 # Remove any duplicate libs folder (common mistake)
