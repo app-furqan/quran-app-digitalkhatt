@@ -71,14 +71,24 @@ class _AyahWidgetState extends State<AyahWidget> {
       final width = widget.renderWidth;
 
       // Estimate height for this single ayah
-      // Each ayah wraps based on its length and font size
+      // With larger fonts, text wraps more - need generous height
       final textLength = widget.ayahText.length;
-      final charsPerLine = (width / (widget.fontSize * 0.6)).clamp(10.0, 200.0);
-      final estimatedLines = (textLength / charsPerLine).ceil().clamp(1, 50);
-      final lineHeight = (widget.fontSize * 2.0).toInt();
-      final height = (estimatedLines * lineHeight + widget.fontSize).clamp(
-        100,
-        5000,
+
+      // Arabic characters are roughly 0.5-0.7x font size in width
+      // Use conservative estimate to ensure wrapping works
+      final avgCharWidth = widget.fontSize * 0.5;
+      final charsPerLine = (width / avgCharWidth).clamp(5.0, 500.0);
+      final estimatedLines = (textLength / charsPerLine).ceil().clamp(1, 100);
+
+      // Line height is font size * 2 (includes spacing)
+      final lineHeight = (widget.fontSize * 2.5).toInt();
+      final height = (estimatedLines * lineHeight + widget.fontSize * 2).clamp(
+        widget.fontSize * 3, // Minimum: at least 3x font size
+        20000, // Maximum
+      );
+
+      print(
+        'AyahWidget: text=${textLength} chars, estimated $estimatedLines lines, ${width}x$height, fontSize=${widget.fontSize}',
       );
 
       final pixels = QuranRenderer.renderMultilineTextToPixels(
@@ -89,7 +99,8 @@ class _AyahWidgetState extends State<AyahWidget> {
         textColor: 0, // Auto-detect
         backgroundColor: widget.backgroundColor,
         justify: true,
-        lineWidth: 0, // Use buffer width
+        lineWidth: width
+            .toDouble(), // Explicitly set line width to buffer width
         rightToLeft: true,
         tajweed: true,
       );
