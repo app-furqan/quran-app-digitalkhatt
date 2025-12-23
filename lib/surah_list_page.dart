@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'quran_renderer.dart';
+import 'surah_text_widget.dart';
 
 class SurahListPage extends StatefulWidget {
   final Function(int pageIndex) onSurahSelected;
@@ -157,9 +158,16 @@ class _SurahListPageState extends State<SurahListPage> {
           ],
         ),
         onTap: () {
-          // Navigate to the surah's starting page
-          widget.onSurahSelected(surah.startPage);
-          Navigator.pop(context);
+          // Navigate to the surah text view
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => SurahTextPage(
+                surahNumber: surah.number,
+                surahName: '${surah.nameEnglish} - ${surah.nameArabic}',
+              ),
+            ),
+          );
         },
       ),
     );

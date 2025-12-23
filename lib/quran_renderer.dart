@@ -53,6 +53,33 @@ final class QuranRenderConfig extends Struct {
   external bool useForeground; // true = dark mode (light text on dark bg)
 }
 
+/// Text rendering configuration
+///
+/// All fields support "auto" values:
+/// - fontSize: 0 = auto-calculate based on lineWidth (default: 48 if both are auto)
+/// - textColor: 0 = auto-detect based on background luminance (white on dark, black on light)
+/// - backgroundColor: Set explicitly (default: white 0xFFFFFFFF)
+/// - justify: Enable kashida justification to fill lineWidth
+/// - lineWidth: 0 = use buffer width minus padding
+/// - rightToLeft: Text direction (default: true for Arabic)
+/// - tajweed: Enable tajweed coloring (default: true)
+final class QuranTextConfig extends Struct {
+  @Int32()
+  external int fontSize; // Font size in pixels (0 = auto)
+  @Uint32()
+  external int textColor; // Text color 0xRRGGBBAA (0 = auto)
+  @Uint32()
+  external int backgroundColor; // Background color 0xRRGGBBAA (default: white)
+  @Bool()
+  external bool justify; // Enable kashida justification
+  @Float()
+  external double lineWidth; // Target line width in pixels (0 = auto)
+  @Bool()
+  external bool rightToLeft; // Text direction (true for Arabic)
+  @Bool()
+  external bool tajweed; // Enable tajweed coloring (default: true)
+}
+
 /// Surah information structure
 final class QuranSurahInfo extends Struct {
   @Int32()
@@ -136,6 +163,62 @@ typedef _GetPageLocationC =
     Bool Function(Int32 pageIndex, Pointer<QuranAyahLocation> location);
 typedef _GetPageLocationDart =
     bool Function(int pageIndex, Pointer<QuranAyahLocation> location);
+
+// Text rendering functions
+typedef _DrawTextC =
+    Int32 Function(
+      Pointer<Void> renderer,
+      Pointer<QuranPixelBuffer> buffer,
+      Pointer<Utf8> text,
+      Int32 textLength,
+      Pointer<QuranTextConfig> config,
+    );
+typedef _DrawTextDart =
+    int Function(
+      Pointer<Void> renderer,
+      Pointer<QuranPixelBuffer> buffer,
+      Pointer<Utf8> text,
+      int textLength,
+      Pointer<QuranTextConfig> config,
+    );
+
+typedef _DrawMultilineTextC =
+    Int32 Function(
+      Pointer<Void> renderer,
+      Pointer<QuranPixelBuffer> buffer,
+      Pointer<Utf8> text,
+      Int32 textLength,
+      Pointer<QuranTextConfig> config,
+      Float lineSpacing,
+    );
+typedef _DrawMultilineTextDart =
+    int Function(
+      Pointer<Void> renderer,
+      Pointer<QuranPixelBuffer> buffer,
+      Pointer<Utf8> text,
+      int textLength,
+      Pointer<QuranTextConfig> config,
+      double lineSpacing,
+    );
+
+typedef _MeasureTextC =
+    Bool Function(
+      Pointer<Void> renderer,
+      Pointer<Utf8> text,
+      Int32 textLen,
+      Int32 fontSize,
+      Pointer<Int32> width,
+      Pointer<Int32> height,
+    );
+typedef _MeasureTextDart =
+    bool Function(
+      Pointer<Void> renderer,
+      Pointer<Utf8> text,
+      int textLen,
+      int fontSize,
+      Pointer<Int32> width,
+      Pointer<Int32> height,
+    );
 
 // ============================================================================
 // QuranRenderer - Main rendering class
@@ -335,6 +418,279 @@ class QuranRenderer {
         'QuranRenderer not initialized. Call initialize() first.',
       );
     }
+  }
+
+  // ============================================================================
+  // Text Rendering API
+  // ============================================================================
+
+  /// Render a single line of Arabic text
+  ///
+  /// Uses the same HarfBuzz + Skia rendering pipeline as the Quran page renderer.
+  ///
+  /// Parameters:
+  /// - [buffer]: Output buffer to receive rendered pixels
+  /// - [width], [height]: Dimensions of the output buffer
+  /// - [text]: UTF-8 encoded Arabic text to render
+  /// - [fontSize]: Font size in pixels (0 = auto, defaults to 48)
+  /// - [textColor]: Text color as 0xRRGGBBAA (0 = auto-detect based on background)
+  /// - [backgroundColor]: Background color as 0xRRGGBBAA (default: white)
+  /// - [justify]: Enable kashida justification to fill lineWidth
+  /// - [lineWidth]: Target line width in pixels (0 = use buffer width)
+  /// - [rightToLeft]: Text direction (default: true for Arabic)
+  /// - [tajweed]: Enable tajweed coloring (default: true)
+  ///
+  /// Returns the width of rendered text in pixels, or -1 on error.
+  static int renderText({
+    required Uint8List buffer,
+    required int width,
+    required int height,
+    required String text,
+    int fontSize = 0, // 0 = auto (defaults to 48)
+    int textColor = 0, // 0 = auto (white on dark, black on light)
+    int backgroundColor = 0xFFFFFFFF, // White
+    bool justify = false,
+    double lineWidth = 0, // 0 = auto (buffer width)
+    bool rightToLeft = true,
+    bool tajweed = true, // Enable tajweed coloring
+  }) {
+    _ensureInitialized();
+
+    final stride = width * 4;
+    final pixels = calloc<Uint8>(stride * height);
+
+    // Create pixel buffer struct
+    final pixelBuffer = calloc<QuranPixelBuffer>();
+    pixelBuffer.ref.pixels = pixels;
+    pixelBuffer.ref.width = width;
+    pixelBuffer.ref.height = height;
+    pixelBuffer.ref.stride = stride;
+    pixelBuffer.ref.format = QuranPixelFormat.rgba8888;
+
+    // Create config struct
+    final config = calloc<QuranTextConfig>();
+    config.ref.fontSize = fontSize;
+    config.ref.textColor = textColor;
+    config.ref.backgroundColor = backgroundColor;
+    config.ref.justify = justify;
+    config.ref.lineWidth = lineWidth;
+    config.ref.rightToLeft = rightToLeft;
+    config.ref.tajweed = tajweed;
+
+    final textPtr = text.toNativeUtf8();
+
+    final drawText = _lib!.lookupFunction<_DrawTextC, _DrawTextDart>(
+      'quran_renderer_draw_text',
+    );
+
+    final renderedWidth = drawText(
+      _renderer!,
+      pixelBuffer,
+      textPtr,
+      -1, // null-terminated
+      config,
+    );
+
+    // Copy to output buffer
+    buffer.setAll(0, pixels.asTypedList(stride * height));
+
+    calloc.free(textPtr);
+    calloc.free(config);
+    calloc.free(pixelBuffer);
+    calloc.free(pixels);
+
+    return renderedWidth;
+  }
+
+  /// Render multi-line Arabic text with automatic line breaking
+  ///
+  /// Parameters:
+  /// - [buffer]: Output buffer to receive rendered pixels
+  /// - [width], [height]: Dimensions of the output buffer
+  /// - [text]: UTF-8 encoded Arabic text (can contain newlines)
+  /// - [fontSize]: Font size in pixels (0 = auto)
+  /// - [textColor]: Text color as 0xRRGGBBAA (0 = auto)
+  /// - [backgroundColor]: Background color as 0xRRGGBBAA
+  /// - [justify]: Enable kashida justification
+  /// - [lineWidth]: Target line width in pixels (0 = auto)
+  /// - [rightToLeft]: Text direction (default: true)
+  /// - [lineSpacing]: Line spacing multiplier (0 = auto 1.5x, 1.0 = single, 2.0 = double)
+  /// - [tajweed]: Enable tajweed coloring (default: true)
+  ///
+  /// Returns the number of lines rendered, or -1 on error.
+  static int renderMultilineText({
+    required Uint8List buffer,
+    required int width,
+    required int height,
+    required String text,
+    int fontSize = 0,
+    int textColor = 0,
+    int backgroundColor = 0xFFFFFFFF,
+    bool justify = false,
+    double lineWidth = 0,
+    bool rightToLeft = true,
+    double lineSpacing = 0, // 0 = auto (1.5x)
+    bool tajweed = true, // Enable tajweed coloring
+  }) {
+    _ensureInitialized();
+
+    final stride = width * 4;
+    final pixels = calloc<Uint8>(stride * height);
+
+    // Create pixel buffer struct
+    final pixelBuffer = calloc<QuranPixelBuffer>();
+    pixelBuffer.ref.pixels = pixels;
+    pixelBuffer.ref.width = width;
+    pixelBuffer.ref.height = height;
+    pixelBuffer.ref.stride = stride;
+    pixelBuffer.ref.format = QuranPixelFormat.rgba8888;
+
+    // Create config struct
+    final config = calloc<QuranTextConfig>();
+    config.ref.fontSize = fontSize;
+    config.ref.textColor = textColor;
+    config.ref.backgroundColor = backgroundColor;
+    config.ref.justify = justify;
+    config.ref.lineWidth = lineWidth;
+    config.ref.rightToLeft = rightToLeft;
+    config.ref.tajweed = tajweed;
+
+    final textPtr = text.toNativeUtf8();
+
+    final drawMultilineText = _lib!
+        .lookupFunction<_DrawMultilineTextC, _DrawMultilineTextDart>(
+          'quran_renderer_draw_multiline_text',
+        );
+
+    final linesRendered = drawMultilineText(
+      _renderer!,
+      pixelBuffer,
+      textPtr,
+      -1, // null-terminated
+      config,
+      lineSpacing,
+    );
+
+    // Copy to output buffer
+    buffer.setAll(0, pixels.asTypedList(stride * height));
+
+    calloc.free(textPtr);
+    calloc.free(config);
+    calloc.free(pixelBuffer);
+    calloc.free(pixels);
+
+    return linesRendered;
+  }
+
+  /// Render multi-line text and return the pixel data directly
+  ///
+  /// Convenience method that allocates and returns the pixel buffer.
+  ///
+  /// Parameters:
+  /// - [width], [height]: Dimensions of the output buffer
+  /// - [text]: UTF-8 encoded Arabic text (can contain newlines)
+  /// - [fontSize]: Font size in pixels (0 = auto, defaults to 48)
+  /// - [textColor]: Text color as 0xRRGGBBAA (0 = auto-detect)
+  /// - [backgroundColor]: Background color as 0xRRGGBBAA (default: white)
+  /// - [justify]: Enable kashida justification
+  /// - [lineWidth]: Target line width in pixels (0 = auto)
+  /// - [rightToLeft]: Text direction (default: true for Arabic)
+  /// - [lineSpacing]: Line spacing multiplier (0 = auto 1.5x)
+  /// - [tajweed]: Enable tajweed coloring (default: true)
+  ///
+  /// Returns RGBA pixel data (width * height * 4 bytes).
+  static Uint8List renderMultilineTextToPixels({
+    required int width,
+    required int height,
+    required String text,
+    int fontSize = 0,
+    int textColor = 0, // 0 = auto
+    int backgroundColor = 0xFFFFFFFF, // White
+    bool justify = false,
+    double lineWidth = 0, // 0 = auto
+    bool rightToLeft = true,
+    double lineSpacing = 0, // 0 = auto (1.5x)
+    bool tajweed = true, // Enable tajweed coloring
+  }) {
+    _ensureInitialized();
+
+    final stride = width * 4;
+    final bufferSize = stride * height;
+    final pixels = calloc<Uint8>(bufferSize);
+
+    // Create pixel buffer struct
+    final pixelBuffer = calloc<QuranPixelBuffer>();
+    pixelBuffer.ref.pixels = pixels;
+    pixelBuffer.ref.width = width;
+    pixelBuffer.ref.height = height;
+    pixelBuffer.ref.stride = stride;
+    pixelBuffer.ref.format = QuranPixelFormat.rgba8888;
+
+    // Create config struct
+    final config = calloc<QuranTextConfig>();
+    config.ref.fontSize = fontSize;
+    config.ref.textColor = textColor;
+    config.ref.backgroundColor = backgroundColor;
+    config.ref.justify = justify;
+    config.ref.lineWidth = lineWidth;
+    config.ref.rightToLeft = rightToLeft;
+    config.ref.tajweed = tajweed;
+
+    final textPtr = text.toNativeUtf8();
+
+    final drawMultilineText = _lib!
+        .lookupFunction<_DrawMultilineTextC, _DrawMultilineTextDart>(
+          'quran_renderer_draw_multiline_text',
+        );
+
+    drawMultilineText(
+      _renderer!,
+      pixelBuffer,
+      textPtr,
+      -1, // null-terminated
+      config,
+      lineSpacing,
+    );
+
+    // Copy to Dart
+    final result = Uint8List(bufferSize);
+    result.setAll(0, pixels.asTypedList(bufferSize));
+
+    calloc.free(textPtr);
+    calloc.free(config);
+    calloc.free(pixelBuffer);
+    calloc.free(pixels);
+
+    return result;
+  }
+
+  /// Measure text without rendering
+  ///
+  /// Parameters:
+  /// - [text]: UTF-8 encoded Arabic text
+  /// - [fontSize]: Font size in pixels
+  ///
+  /// Returns a record with width and height in pixels.
+  static ({int width, int height}) measureText(String text, int fontSize) {
+    _ensureInitialized();
+
+    final textPtr = text.toNativeUtf8();
+    final widthPtr = calloc<Int32>();
+    final heightPtr = calloc<Int32>();
+
+    final measureTextFn = _lib!.lookupFunction<_MeasureTextC, _MeasureTextDart>(
+      'quran_renderer_measure_text',
+    );
+
+    measureTextFn(_renderer!, textPtr, -1, fontSize, widthPtr, heightPtr);
+
+    final result = (width: widthPtr.value, height: heightPtr.value);
+
+    calloc.free(textPtr);
+    calloc.free(widthPtr);
+    calloc.free(heightPtr);
+
+    return result;
   }
 
   // ============================================================================

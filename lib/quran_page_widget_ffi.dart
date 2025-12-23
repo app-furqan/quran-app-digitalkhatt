@@ -16,8 +16,8 @@ class QuranPageWidget extends StatefulWidget {
     required this.pageIndex,
     this.tajweed = true,
     this.fontSize = 0, // 0 = auto-fit to screen
-    this.lightBackgroundColor = 0xFFFFFFFF,
-    this.darkBackgroundColor = 0xFF1E1E1E,
+    this.lightBackgroundColor = 0xFFFFFFFF, // White (RRGGBBAA format)
+    this.darkBackgroundColor = 0x1E1E1EFF, // Dark gray (RRGGBBAA format)
   });
 
   @override
@@ -70,6 +70,8 @@ class _QuranPageWidgetState extends State<QuranPageWidget> {
       );
 
       // Render the page
+      // useForeground=true means use light text (for dark backgrounds)
+      // useForeground=false means use dark text (for light backgrounds)
       final pixels = QuranRenderer.renderPage(
         pageIndex: widget.pageIndex,
         width: width,
@@ -77,7 +79,7 @@ class _QuranPageWidgetState extends State<QuranPageWidget> {
         tajweed: widget.tajweed,
         fontSize: widget.fontSize,
         backgroundColor: bgColor,
-        useForeground: isDark, // Dark mode uses light text on dark bg
+        useForeground: isDark, // Dark mode needs light text
       );
 
       print(
