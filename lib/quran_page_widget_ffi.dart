@@ -61,17 +61,18 @@ class _QuranPageWidgetState extends State<QuranPageWidget> {
 
       // Get background color based on theme
       final isDark = Theme.of(context).brightness == Brightness.dark;
-      final bgColor = isDark
-          ? widget.darkBackgroundColor
-          : widget.lightBackgroundColor;
+      // Renderer expects backgroundColor as 0xRRGGBBAA.
+      // For dark mode, pass true black so the native renderer can reliably
+      // apply its background-luminance logic (and keep tajweed visible).
+      final bgColor = isDark ? 0x000000FF : widget.lightBackgroundColor;
 
       print(
         '_renderPage: isDark=$isDark, bgColor=0x${bgColor.toRadixString(16)}, tajweed=${widget.tajweed}',
       );
 
       // Render the page
-      // useForeground=true means use light text (for dark backgrounds)
-      // useForeground=false means use dark text (for light backgrounds)
+      // NOTE: useForeground can override per-glyph colors (tajweed), so keep it
+      // false and rely on the renderer's background-luminance auto logic.
       final pixels = QuranRenderer.renderPage(
         pageIndex: widget.pageIndex,
         width: width,
@@ -79,7 +80,7 @@ class _QuranPageWidgetState extends State<QuranPageWidget> {
         tajweed: widget.tajweed,
         fontSize: widget.fontSize,
         backgroundColor: bgColor,
-        useForeground: isDark, // Dark mode needs light text
+        useForeground: false,
       );
 
       print(
@@ -161,12 +162,6 @@ class _QuranPageWidgetState extends State<QuranPageWidget> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Get theme brightness for background
-        final isDark = Theme.of(context).brightness == Brightness.dark;
-        final bgColor = isDark
-            ? Theme.of(context).colorScheme.surface
-            : Colors.white;
-
         // Render at screen dimensions with dynamic height adjustment
         final pixelRatio = MediaQuery.of(context).devicePixelRatio;
         final renderWidth = (constraints.maxWidth * pixelRatio).toInt();
