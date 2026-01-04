@@ -48,7 +48,7 @@ class QuranApp extends StatefulWidget {
 }
 
 class _QuranAppState extends State<QuranApp> {
-  ThemeMode _themeMode = ThemeMode.system;
+  ThemeMode _themeMode = ThemeMode.light;
 
   void _changeThemeMode(ThemeMode mode) {
     setState(() {
@@ -212,123 +212,125 @@ class _QuranReaderPageState extends State<QuranReaderPage> {
       builder: (context) => StatefulBuilder(
         builder: (context, setModalState) => Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Settings', style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: 16),
-              // Theme mode
-              ListTile(
-                leading: const Icon(Icons.brightness_6),
-                title: const Text('Theme'),
-                trailing: SegmentedButton<ThemeMode>(
-                  segments: const [
-                    ButtonSegment(
-                      value: ThemeMode.light,
-                      icon: Icon(Icons.light_mode, size: 16),
-                    ),
-                    ButtonSegment(
-                      value: ThemeMode.system,
-                      icon: Icon(Icons.brightness_auto, size: 16),
-                    ),
-                    ButtonSegment(
-                      value: ThemeMode.dark,
-                      icon: Icon(Icons.dark_mode, size: 16),
-                    ),
-                  ],
-                  selected: {widget.currentThemeMode},
-                  onSelectionChanged: (Set<ThemeMode> newSelection) {
-                    widget.onThemeModeChanged(newSelection.first);
-                  },
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Settings', style: Theme.of(context).textTheme.titleLarge),
+                const SizedBox(height: 16),
+                // Theme mode
+                ListTile(
+                  leading: const Icon(Icons.brightness_6),
+                  title: const Text('Theme'),
+                  trailing: SegmentedButton<ThemeMode>(
+                    segments: const [
+                      ButtonSegment(
+                        value: ThemeMode.light,
+                        icon: Icon(Icons.light_mode, size: 16),
+                      ),
+                      ButtonSegment(
+                        value: ThemeMode.system,
+                        icon: Icon(Icons.brightness_auto, size: 16),
+                      ),
+                      ButtonSegment(
+                        value: ThemeMode.dark,
+                        icon: Icon(Icons.dark_mode, size: 16),
+                      ),
+                    ],
+                    selected: {widget.currentThemeMode},
+                    onSelectionChanged: (Set<ThemeMode> newSelection) {
+                      widget.onThemeModeChanged(newSelection.first);
+                    },
+                  ),
                 ),
-              ),
-              const Divider(),
-              // Font size
-              ListTile(
-                leading: const Icon(Icons.text_fields),
-                title: const Text('Font Size'),
-                subtitle: Slider(
-                  value: _fontSize.toDouble(),
-                  min: 0,
-                  max: 100,
-                  divisions: 20,
-                  label: _fontSize == 0 ? 'Auto' : '${_fontSize}px',
+                const Divider(),
+                // Font size
+                ListTile(
+                  leading: const Icon(Icons.text_fields),
+                  title: const Text('Font Size'),
+                  subtitle: Slider(
+                    value: _fontSize.toDouble(),
+                    min: 0,
+                    max: 100,
+                    divisions: 20,
+                    label: _fontSize == 0 ? 'Auto' : '${_fontSize}px',
+                    onChanged: (value) {
+                      setModalState(() {
+                        setState(() {
+                          _fontSize = value.round();
+                        });
+                      });
+                    },
+                  ),
+                  trailing: Text(
+                    _fontSize == 0 ? 'Auto' : '${_fontSize}px',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+                // Tajweed toggle
+                SwitchListTile(
+                  secondary: const Icon(Icons.palette),
+                  title: const Text('Tajweed Colors'),
+                  subtitle: const Text('Show color-coded tajweed rules'),
+                  value: _tajweedEnabled,
                   onChanged: (value) {
                     setModalState(() {
                       setState(() {
-                        _fontSize = value.round();
+                        _tajweedEnabled = value;
                       });
                     });
                   },
                 ),
-                trailing: Text(
-                  _fontSize == 0 ? 'Auto' : '${_fontSize}px',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-              ),
-              // Tajweed toggle
-              SwitchListTile(
-                secondary: const Icon(Icons.palette),
-                title: const Text('Tajweed Colors'),
-                subtitle: const Text('Show color-coded tajweed rules'),
-                value: _tajweedEnabled,
-                onChanged: (value) {
-                  setModalState(() {
-                    setState(() {
-                      _tajweedEnabled = value;
-                    });
-                  });
-                },
-              ),
-              const Divider(),
-              // Light mode background
-              ListTile(
-                leading: const Icon(Icons.wb_sunny),
-                title: const Text('Light Background'),
-                trailing: DropdownButton<String>(
-                  value: _lightBgColor,
-                  items: const [
-                    DropdownMenuItem(value: 'white', child: Text('White')),
-                    DropdownMenuItem(value: 'beige', child: Text('Beige')),
-                    DropdownMenuItem(value: 'sepia', child: Text('Sepia')),
-                    DropdownMenuItem(value: 'gray', child: Text('Gray')),
-                  ],
-                  onChanged: (value) {
-                    if (value != null) {
-                      setModalState(() {
-                        setState(() {
-                          _lightBgColor = value;
+                const Divider(),
+                // Light mode background
+                ListTile(
+                  leading: const Icon(Icons.wb_sunny),
+                  title: const Text('Light Background'),
+                  trailing: DropdownButton<String>(
+                    value: _lightBgColor,
+                    items: const [
+                      DropdownMenuItem(value: 'white', child: Text('White')),
+                      DropdownMenuItem(value: 'beige', child: Text('Beige')),
+                      DropdownMenuItem(value: 'sepia', child: Text('Sepia')),
+                      DropdownMenuItem(value: 'gray', child: Text('Gray')),
+                    ],
+                    onChanged: (value) {
+                      if (value != null) {
+                        setModalState(() {
+                          setState(() {
+                            _lightBgColor = value;
+                          });
                         });
-                      });
-                    }
-                  },
+                      }
+                    },
+                  ),
                 ),
-              ),
-              // Dark mode background
-              ListTile(
-                leading: const Icon(Icons.nightlight_round),
-                title: const Text('Dark Background'),
-                trailing: DropdownButton<String>(
-                  value: _darkBgColor,
-                  items: const [
-                    DropdownMenuItem(value: 'dark', child: Text('Dark Gray')),
-                    DropdownMenuItem(value: 'black', child: Text('Black')),
-                    DropdownMenuItem(value: 'warm', child: Text('Warm')),
-                  ],
-                  onChanged: (value) {
-                    if (value != null) {
-                      setModalState(() {
-                        setState(() {
-                          _darkBgColor = value;
+                // Dark mode background
+                ListTile(
+                  leading: const Icon(Icons.nightlight_round),
+                  title: const Text('Dark Background'),
+                  trailing: DropdownButton<String>(
+                    value: _darkBgColor,
+                    items: const [
+                      DropdownMenuItem(value: 'dark', child: Text('Dark Gray')),
+                      DropdownMenuItem(value: 'black', child: Text('Black')),
+                      DropdownMenuItem(value: 'warm', child: Text('Warm')),
+                    ],
+                    onChanged: (value) {
+                      if (value != null) {
+                        setModalState(() {
+                          setState(() {
+                            _darkBgColor = value;
+                          });
                         });
-                      });
-                    }
-                  },
+                      }
+                    },
+                  ),
                 ),
-              ),
-              const SizedBox(height: 16),
-            ],
+                const SizedBox(height: 16),
+              ],
+            ),
           ),
         ),
       ),
