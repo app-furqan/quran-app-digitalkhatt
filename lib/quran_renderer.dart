@@ -324,8 +324,12 @@ class QuranRenderer {
           'Could not load libquranrenderer.so. Tried: $possiblePaths',
         );
       }
-    } else if (Platform.isMacOS || Platform.isIOS) {
+    } else if (Platform.isMacOS) {
       _lib = DynamicLibrary.open('libquranrenderer.dylib');
+    } else if (Platform.isIOS) {
+      // iOS apps typically link static libraries / XCFrameworks at build time;
+      // load symbols from the current process.
+      _lib = DynamicLibrary.process();
     } else if (Platform.isWindows) {
       _lib = DynamicLibrary.open('quranrenderer.dll');
     } else {
