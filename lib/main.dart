@@ -102,8 +102,7 @@ class _QuranReaderPageState extends State<QuranReaderPage> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
   bool _tajweedEnabled = true;
-  int _fontSize =
-      0; // 0 = auto-fit (default), or specific px size like 48, 64, etc.
+  int _fontSize = 0; // 0 = auto-fit (default)
   String _lightBgColor = 'white'; // white, beige, sepia, gray
   String _darkBgColor = 'dark'; // dark, black, warm
 
