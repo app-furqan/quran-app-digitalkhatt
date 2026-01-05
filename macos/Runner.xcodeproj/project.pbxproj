@@ -427,7 +427,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cp \"${SRCROOT}/libs/libquranrenderer.dylib\" \"${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}/\"\ninstall_name_tool -id \"@rpath/libquranrenderer.dylib\" \"${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}/libquranrenderer.dylib\"\n";
+			shellScript = "cp \"${SRCROOT}/libs/libquranrenderer.dylib\" \"${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}/\"\ninstall_name_tool -id \"@rpath/libquranrenderer.dylib\" \"${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}/libquranrenderer.dylib\"\ncodesign --force --sign - \"${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}/libquranrenderer.dylib\"\n";
 		};
 		E7758D36A638B3F0FC4E9D26 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
