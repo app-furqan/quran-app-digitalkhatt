@@ -27,7 +27,7 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
   path_provider_foundation: bb55f6dbba17d0dccd6737fe6f7f34fbd0376880
-  QuranRenderer: a7de40b84e4bb9740bf9b16e02b5eb520ca28eb1
+  QuranRenderer: 11e9ec5c4a3d6cc0f0d15b212f903f125bf25828
   sqflite_darwin: 20b2a3a3b70e43edae938624ce550a3cbf66a3d0
 
 PODFILE CHECKSUM: 183d374dfaa67b7556827e37e5d9a6420a9cb7a2

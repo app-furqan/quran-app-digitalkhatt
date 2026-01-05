@@ -12,4 +12,10 @@ Pod::Spec.new do |s|
 
   s.source           = { :git => 'https://example.invalid/quran-renderer.git', :tag => s.version.to_s }
   s.vendored_frameworks = 'Frameworks/QuranRenderer.xcframework'
+  
+  # Force load all symbols from the static library so they're available via DynamicLibrary.process()
+  # Use -all_load to load all symbols from all static libraries
+  s.xcconfig = {
+    'OTHER_LDFLAGS' => '-ObjC -all_load'
+  }
 end

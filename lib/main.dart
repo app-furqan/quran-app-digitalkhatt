@@ -305,9 +305,7 @@ class _QuranReaderPageState extends State<QuranReaderPage> {
         },
         itemBuilder: (context, index) {
           return QuranPageWidget(
-            key: ValueKey(
-              'page_${index}_${_tajweedEnabled}_${_fontSize}',
-            ),
+            key: ValueKey('page_${index}_${_tajweedEnabled}_${_fontSize}'),
             pageIndex: index,
             tajweed: _tajweedEnabled,
             fontSize: _fontSize,
