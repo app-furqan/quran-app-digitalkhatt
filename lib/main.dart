@@ -16,7 +16,9 @@ void main() async {
   try {
     // Load font and initialize renderer
     print('Loading font...');
-    final fontData = await rootBundle.load('assets/fonts/digitalkhatt.otf');
+    final fontData = await rootBundle.load(
+      'assets/fonts/digitalkhatt-cff2.otf',
+    );
     print('Font loaded, initializing renderer...');
     await QuranRenderer.initialize(fontData.buffer.asUint8List());
     print('Renderer initialized successfully!');
