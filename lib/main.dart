@@ -103,6 +103,8 @@ class _QuranReaderPageState extends State<QuranReaderPage> {
   int _currentPage = 0;
   bool _tajweedEnabled = true;
   int _fontSize = 0; // 0 = auto-fit (default)
+  double _lineHeightDivisor =
+      0.0; // 0 = auto (10.0 for regular, 7.5 for Fatiha)
 
   static const int totalPages = 604;
 
@@ -257,6 +259,43 @@ class _QuranReaderPageState extends State<QuranReaderPage> {
                     });
                   },
                 ),
+                const Divider(),
+                // Line height divisor
+                ListTile(
+                  leading: const Icon(Icons.height),
+                  title: const Text('Line Height Divisor'),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Slider(
+                        value: _lineHeightDivisor,
+                        min: 0,
+                        max: 15,
+                        divisions: 30,
+                        label: _lineHeightDivisor == 0
+                            ? 'Auto'
+                            : _lineHeightDivisor.toStringAsFixed(1),
+                        onChanged: (value) {
+                          setModalState(() {
+                            setState(() {
+                              _lineHeightDivisor = value;
+                            });
+                          });
+                        },
+                      ),
+                      Text(
+                        'height / divisor = line height\nAuto: 10.0 for regular pages, 7.5 for Fatiha',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                  trailing: Text(
+                    _lineHeightDivisor == 0
+                        ? 'Auto'
+                        : _lineHeightDivisor.toStringAsFixed(1),
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
                 const SizedBox(height: 16),
               ],
             ),
@@ -294,60 +333,77 @@ class _QuranReaderPageState extends State<QuranReaderPage> {
           ),
         ],
       ),
-      body: PageView.builder(
-        controller: _pageController,
-        itemCount: totalPages,
-        reverse: true, // RTL for Arabic
-        onPageChanged: (index) {
-          setState(() {
-            _currentPage = index;
-          });
-        },
-        itemBuilder: (context, index) {
-          return QuranPageWidget(
-            key: ValueKey('page_${index}_${_tajweedEnabled}_${_fontSize}'),
-            pageIndex: index,
-            tajweed: _tajweedEnabled,
-            fontSize: _fontSize,
-            lightBackgroundColor: getLightBackgroundColor(),
-            darkBackgroundColor: getDarkBackgroundColor(),
-          );
-        },
-      ),
-      bottomNavigationBar: BottomAppBar(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            IconButton(
-              icon: const Icon(Icons.first_page),
-              tooltip: 'First page',
-              onPressed: () => _goToPage(0),
+      body: Column(
+        children: [
+          Expanded(
+            child: PageView.builder(
+              controller: _pageController,
+              itemCount: totalPages,
+              reverse: true, // RTL for Arabic
+              onPageChanged: (index) {
+                setState(() {
+                  _currentPage = index;
+                });
+              },
+              itemBuilder: (context, index) {
+                return QuranPageWidget(
+                  key: ValueKey(
+                    'page_${index}_${_tajweedEnabled}_${_fontSize}_${_lineHeightDivisor}',
+                  ),
+                  pageIndex: index,
+                  tajweed: _tajweedEnabled,
+                  fontSize: _fontSize,
+                  lightBackgroundColor: getLightBackgroundColor(),
+                  darkBackgroundColor: getDarkBackgroundColor(),
+                  lineHeightDivisor: _lineHeightDivisor,
+                );
+              },
             ),
-            IconButton(
-              icon: const Icon(Icons.chevron_left),
-              tooltip: 'Previous page',
-              onPressed: _currentPage > 0
-                  ? () => _goToPage(_currentPage - 1)
-                  : null,
+          ),
+          // Bottom navigation inside body to avoid overlap
+          Container(
+            color: Theme.of(context).colorScheme.surface,
+            child: SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.first_page),
+                      tooltip: 'First page',
+                      onPressed: () => _goToPage(0),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.chevron_left),
+                      tooltip: 'Previous page',
+                      onPressed: _currentPage > 0
+                          ? () => _goToPage(_currentPage - 1)
+                          : null,
+                    ),
+                    Text(
+                      '${_currentPage + 1} / $totalPages',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.chevron_right),
+                      tooltip: 'Next page',
+                      onPressed: _currentPage < totalPages - 1
+                          ? () => _goToPage(_currentPage + 1)
+                          : null,
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.last_page),
+                      tooltip: 'Last page',
+                      onPressed: () => _goToPage(totalPages - 1),
+                    ),
+                  ],
+                ),
+              ),
             ),
-            Text(
-              '${_currentPage + 1} / $totalPages',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            IconButton(
-              icon: const Icon(Icons.chevron_right),
-              tooltip: 'Next page',
-              onPressed: _currentPage < totalPages - 1
-                  ? () => _goToPage(_currentPage + 1)
-                  : null,
-            ),
-            IconButton(
-              icon: const Icon(Icons.last_page),
-              tooltip: 'Last page',
-              onPressed: () => _goToPage(totalPages - 1),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

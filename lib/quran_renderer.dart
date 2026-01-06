@@ -51,6 +51,10 @@ final class QuranRenderConfig extends Struct {
   external int fontSize; // 0 = auto-fit to screen (default), or specific px size
   @Bool()
   external bool useForeground; // true = dark mode (light text on dark bg)
+  @Float()
+  external double lineHeightDivisor; // Line height = height / divisor (0 = auto: 10.0 for regular, 7.5 for Fatiha)
+  @Float()
+  external double topMarginLines; // Top margin in line-heights for Fatiha (0 = auto: 3.5 for Fatiha, 0 for others)
 }
 
 /// Text rendering configuration
@@ -371,6 +375,9 @@ class QuranRenderer {
     int backgroundColor = 0xFFFFFFFF, // Default white (RRGGBBAA)
     int fontSize = 0, // 0 = auto-fit to screen (default)
     bool useForeground = false, // true = dark mode (light text on dark bg)
+    double lineHeightDivisor =
+        0.0, // 0 = auto (10.0 for regular, 7.5 for Fatiha)
+    double topMarginLines = 0.0, // 0 = auto (3.5 for Fatiha, 0 for others)
   }) {
     _ensureInitialized();
 
@@ -396,9 +403,11 @@ class QuranRenderer {
     config.ref.backgroundColor = backgroundColor;
     config.ref.fontSize = fontSize;
     config.ref.useForeground = useForeground;
+    config.ref.lineHeightDivisor = lineHeightDivisor;
+    config.ref.topMarginLines = topMarginLines;
 
     print(
-      'renderPage: tajweed=$tajweed, justify=$justify, fontSize=$fontSize, useForeground=$useForeground',
+      'renderPage: tajweed=$tajweed, justify=$justify, fontSize=$fontSize, useForeground=$useForeground, lineHeightDivisor=$lineHeightDivisor, topMarginLines=$topMarginLines',
     );
 
     // Render

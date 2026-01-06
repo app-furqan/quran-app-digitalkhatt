@@ -10,6 +10,8 @@ class QuranPageWidget extends StatefulWidget {
   final int fontSize; // 0 = auto-fit (default), or specific px size
   final int lightBackgroundColor;
   final int darkBackgroundColor;
+  final double lineHeightDivisor; // 0 = auto (10.0 for regular, 7.5 for Fatiha)
+  final double topMarginLines; // 0 = auto (3.5 for Fatiha, 0 for others)
 
   const QuranPageWidget({
     super.key,
@@ -17,7 +19,9 @@ class QuranPageWidget extends StatefulWidget {
     this.tajweed = true,
     this.fontSize = 0, // 0 = auto-fit to screen
     this.lightBackgroundColor = 0xFFFFFFFF, // White (RRGGBBAA format)
-    this.darkBackgroundColor = 0x1E1E1EFF, // Dark gray (RRGGBBAA format)
+    this.darkBackgroundColor = 0x000000FF, // True black (RRGGBBAA format)
+    this.lineHeightDivisor = 0.0, // 0 = auto
+    this.topMarginLines = 0.0, // 0 = auto
   });
 
   @override
@@ -30,6 +34,7 @@ class _QuranPageWidgetState extends State<QuranPageWidget> {
   String? _error;
   int _lastWidth = 0;
   int _lastHeight = 0;
+  Brightness? _lastBrightness;
 
   @override
   void didUpdateWidget(QuranPageWidget oldWidget) {
@@ -38,7 +43,9 @@ class _QuranPageWidgetState extends State<QuranPageWidget> {
         oldWidget.tajweed != widget.tajweed ||
         oldWidget.fontSize != widget.fontSize ||
         oldWidget.lightBackgroundColor != widget.lightBackgroundColor ||
-        oldWidget.darkBackgroundColor != widget.darkBackgroundColor) {
+        oldWidget.darkBackgroundColor != widget.darkBackgroundColor ||
+        oldWidget.lineHeightDivisor != widget.lineHeightDivisor ||
+        oldWidget.topMarginLines != widget.topMarginLines) {
       // Force re-render on next build
       _lastWidth = 0;
       _lastHeight = 0;
@@ -62,9 +69,9 @@ class _QuranPageWidgetState extends State<QuranPageWidget> {
       // Get background color based on theme
       final isDark = Theme.of(context).brightness == Brightness.dark;
       // Renderer expects backgroundColor as 0xRRGGBBAA.
-      // For dark mode, pass true black so the native renderer can reliably
-      // apply its background-luminance logic (and keep tajweed visible).
-      final bgColor = isDark ? 0x000000FF : widget.lightBackgroundColor;
+      final bgColor = isDark
+          ? widget.darkBackgroundColor
+          : widget.lightBackgroundColor;
 
       print(
         '_renderPage: isDark=$isDark, bgColor=0x${bgColor.toRadixString(16)}, tajweed=${widget.tajweed}',
@@ -81,6 +88,8 @@ class _QuranPageWidgetState extends State<QuranPageWidget> {
         fontSize: widget.fontSize,
         backgroundColor: bgColor,
         useForeground: false,
+        lineHeightDivisor: widget.lineHeightDivisor,
+        topMarginLines: widget.topMarginLines,
       );
 
       print(
@@ -181,6 +190,18 @@ class _QuranPageWidgetState extends State<QuranPageWidget> {
         print(
           'aspectRatio=$aspectRatio, heightMultiplier=$heightMultiplier, size=${renderWidth}x$renderHeight',
         );
+
+        // Check if brightness changed (theme switch)
+        final currentBrightness = Theme.of(context).brightness;
+        final brightnessChanged =
+            _lastBrightness != null && _lastBrightness != currentBrightness;
+        if (brightnessChanged) {
+          _lastBrightness = currentBrightness;
+          // Force re-render by resetting dimensions
+          _lastWidth = 0;
+          _lastHeight = 0;
+        }
+        _lastBrightness = currentBrightness;
 
         // Trigger render if size changed or no image yet
         if ((renderWidth != _lastWidth || renderHeight != _lastHeight) &&
