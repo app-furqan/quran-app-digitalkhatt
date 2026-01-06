@@ -219,18 +219,20 @@ class _QuranPageWidgetState extends State<QuranPageWidget> {
           );
         }
 
-        return InteractiveViewer(
-          minScale: 0.5,
-          maxScale: 4.0,
-          panEnabled: true,
-          scaleEnabled: true,
-          boundaryMargin: const EdgeInsets.all(0),
-          constrained: false,
-          alignment: Alignment.topCenter,
-          child: RawImage(
-            image: _image,
-            width: constraints.maxWidth,
-            fit: BoxFit.fitWidth,
+        return ClipRect(
+          child: InteractiveViewer(
+            minScale: 0.5,
+            maxScale: 4.0,
+            panEnabled: true,
+            scaleEnabled: true,
+            boundaryMargin: const EdgeInsets.all(0),
+            constrained: false,
+            alignment: Alignment.topCenter,
+            child: RawImage(
+              image: _image,
+              width: constraints.maxWidth,
+              fit: BoxFit.fitWidth,
+            ),
           ),
         );
       },
