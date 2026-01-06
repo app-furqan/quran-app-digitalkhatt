@@ -171,25 +171,14 @@ class _QuranPageWidgetState extends State<QuranPageWidget> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Render at screen dimensions with dynamic height adjustment
+        // Render at screen dimensions with extra height for scrolling
         final pixelRatio = MediaQuery.of(context).devicePixelRatio;
         final renderWidth = (constraints.maxWidth * pixelRatio).toInt();
+        // Add 20% extra height to allow scrolling to see full content
+        final renderHeight = (constraints.maxHeight * pixelRatio * 1.2).toInt();
 
-        // Dynamic height multiplier based on aspect ratio
-        // Wide screens (unfolded): aspect > 0.8 needs significantly more height
-        // Narrow screens (folded): aspect <= 0.5 needs less height
         final aspectRatio = constraints.maxWidth / constraints.maxHeight;
-        final heightMultiplier = aspectRatio > 0.8
-            ? 1.4 // Unfolded/tablet - more height for proper line spacing
-            : aspectRatio > 0.5
-            ? 1.2 // Medium screens
-            : 1.1; // Folded/narrow - less extra height
-        final renderHeight =
-            (constraints.maxHeight * pixelRatio * heightMultiplier).toInt();
-
-        print(
-          'aspectRatio=$aspectRatio, heightMultiplier=$heightMultiplier, size=${renderWidth}x$renderHeight',
-        );
+        print('aspectRatio=$aspectRatio, size=${renderWidth}x$renderHeight');
 
         // Check if brightness changed (theme switch)
         final currentBrightness = Theme.of(context).brightness;
@@ -225,9 +214,7 @@ class _QuranPageWidgetState extends State<QuranPageWidget> {
             maxScale: 4.0,
             panEnabled: true,
             scaleEnabled: true,
-            boundaryMargin: const EdgeInsets.all(0),
             constrained: false,
-            alignment: Alignment.topCenter,
             child: RawImage(
               image: _image,
               width: constraints.maxWidth,
