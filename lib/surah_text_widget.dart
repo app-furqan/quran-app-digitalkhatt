@@ -84,15 +84,15 @@ class _AyahWidgetState extends State<AyahWidget> {
       final charsPerLine = (width / avgCharWidth).clamp(5.0, 500.0);
       final estimatedLines = (textLength / charsPerLine).ceil().clamp(1, 100);
 
-      // Line height is font size * 2 (includes spacing)
-      final lineHeight = (widget.fontSize * 2.5).toInt();
-      final height = (estimatedLines * lineHeight + widget.fontSize * 2).clamp(
-        widget.fontSize * 3, // Minimum: at least 3x font size
+      // Line height is font size * 1.5 (tighter spacing)
+      final lineHeight = (widget.fontSize * 1.5).toInt();
+      final height = (estimatedLines * lineHeight + widget.fontSize).clamp(
+        widget.fontSize * 2, // Minimum: at least 2x font size
         20000, // Maximum
       );
 
       print(
-        'AyahWidget: text=${textLength} chars, estimated $estimatedLines lines, ${width}x$height, fontSize=${widget.fontSize}',
+        'AyahWidget: text=${textLength} chars, estimated $estimatedLines lines, ${width}x$height, fontSize=${widget.fontSize}, lineWidth=$width',
       );
 
       final pixels = QuranRenderer.renderMultilineTextToPixels(
@@ -103,10 +103,10 @@ class _AyahWidgetState extends State<AyahWidget> {
         textColor: 0, // Auto-detect
         backgroundColor: widget.backgroundColor,
         justify: widget.justify,
-        lineWidth: width
-            .toDouble(), // Explicitly set line width to buffer width
+        lineWidth: width.toDouble(), // Line width for word wrapping
         rightToLeft: true,
         tajweed: true,
+        lineSpacing: 1.2, // Tighter line spacing (default auto is 1.5x)
       );
 
       final image = await _createImage(pixels, width, height);

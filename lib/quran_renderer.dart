@@ -240,6 +240,26 @@ typedef _MeasureTextDart =
       Pointer<Int32> height,
     );
 
+// Word-wrapped text rendering (automatic word breaking)
+typedef _DrawWrappedTextC =
+    Int32 Function(
+      Pointer<Void> renderer,
+      Pointer<QuranPixelBuffer> buffer,
+      Pointer<Utf8> text,
+      Int32 textLength,
+      Pointer<QuranTextConfig> config,
+      Float lineSpacing,
+    );
+typedef _DrawWrappedTextDart =
+    int Function(
+      Pointer<Void> renderer,
+      Pointer<QuranPixelBuffer> buffer,
+      Pointer<Utf8> text,
+      int textLength,
+      Pointer<QuranTextConfig> config,
+      double lineSpacing,
+    );
+
 // ============================================================================
 // QuranRenderer - Main rendering class
 // ============================================================================
@@ -685,12 +705,12 @@ class QuranRenderer {
 
     final textPtr = text.toNativeUtf8();
 
-    final drawMultilineText = _lib!
-        .lookupFunction<_DrawMultilineTextC, _DrawMultilineTextDart>(
-          'quran_renderer_draw_multiline_text',
+    final drawWrappedText = _lib!
+        .lookupFunction<_DrawWrappedTextC, _DrawWrappedTextDart>(
+          'quran_renderer_draw_wrapped_text',
         );
 
-    drawMultilineText(
+    drawWrappedText(
       _renderer!,
       pixelBuffer,
       textPtr,

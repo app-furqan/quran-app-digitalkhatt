@@ -13,6 +13,7 @@ extern void quran_renderer_draw_page(void* renderer, void* buffer, int pageIndex
 extern int quran_renderer_get_page_count(void* renderer);
 extern int quran_renderer_draw_text(void* renderer, void* buffer, const char* text, int textLength, const void* config);
 extern int quran_renderer_draw_multiline_text(void* renderer, void* buffer, const char* text, int textLength, const void* config, float lineSpacing);
+extern int quran_renderer_draw_wrapped_text(void* renderer, void* buffer, const char* text, int textLength, const void* config, float lineSpacing);
 extern int quran_renderer_measure_text(void* renderer, const char* text, int textLen, int fontSize, int* width, int* height);
 extern int quran_renderer_get_surah_count(void);
 extern int quran_renderer_get_total_ayah_count(void);
@@ -30,6 +31,7 @@ static const void* _quran_renderer_ffi_keep_symbols[] = {
     (const void*)&quran_renderer_get_page_count,
     (const void*)&quran_renderer_draw_text,
     (const void*)&quran_renderer_draw_multiline_text,
+    (const void*)&quran_renderer_draw_wrapped_text,
     (const void*)&quran_renderer_measure_text,
     (const void*)&quran_renderer_get_surah_count,
     (const void*)&quran_renderer_get_total_ayah_count,
