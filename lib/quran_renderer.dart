@@ -67,21 +67,37 @@ final class QuranRenderConfig extends Struct {
 /// - lineWidth: 0 = use buffer width minus padding
 /// - rightToLeft: Text direction (default: true for Arabic)
 /// - tajweed: Enable tajweed coloring (default: true)
+///
+/// Note: This struct must match the C struct layout with proper padding.
+/// C struct offsets: fontSize=0, textColor=4, backgroundColor=8, justify=12,
+/// (3 bytes padding), lineWidth=16, rightToLeft=20, tajweed=21, total=24 bytes.
 final class QuranTextConfig extends Struct {
   @Int32()
-  external int fontSize; // Font size in pixels (0 = auto)
+  external int fontSize; // Font size in pixels (0 = auto) - offset 0
   @Uint32()
-  external int textColor; // Text color 0xRRGGBBAA (0 = auto)
+  external int textColor; // Text color 0xRRGGBBAA (0 = auto) - offset 4
   @Uint32()
-  external int backgroundColor; // Background color 0xRRGGBBAA (default: white)
+  external int backgroundColor; // Background color 0xRRGGBBAA - offset 8
   @Bool()
-  external bool justify; // Enable kashida justification
+  external bool justify; // Enable kashida justification - offset 12
+  // 3 bytes padding (offsets 13-15) to align lineWidth to 4-byte boundary
+  @Uint8()
+  external int _padding1;
+  @Uint8()
+  external int _padding2;
+  @Uint8()
+  external int _padding3;
   @Float()
-  external double lineWidth; // Target line width in pixels (0 = auto)
+  external double lineWidth; // Target line width in pixels - offset 16
   @Bool()
-  external bool rightToLeft; // Text direction (true for Arabic)
+  external bool rightToLeft; // Text direction (true for Arabic) - offset 20
   @Bool()
-  external bool tajweed; // Enable tajweed coloring (default: true)
+  external bool tajweed; // Enable tajweed coloring - offset 21
+  // 2 bytes trailing padding for struct alignment
+  @Uint8()
+  external int _padding4;
+  @Uint8()
+  external int _padding5;
 }
 
 /// Surah information structure
@@ -486,9 +502,15 @@ class QuranRenderer {
     config.ref.textColor = textColor;
     config.ref.backgroundColor = backgroundColor;
     config.ref.justify = justify;
+    // Initialize padding bytes for proper C struct alignment
+    config.ref._padding1 = 0;
+    config.ref._padding2 = 0;
+    config.ref._padding3 = 0;
     config.ref.lineWidth = lineWidth;
     config.ref.rightToLeft = rightToLeft;
     config.ref.tajweed = tajweed;
+    config.ref._padding4 = 0;
+    config.ref._padding5 = 0;
 
     final textPtr = text.toNativeUtf8();
 
@@ -564,9 +586,15 @@ class QuranRenderer {
     config.ref.textColor = textColor;
     config.ref.backgroundColor = backgroundColor;
     config.ref.justify = justify;
+    // Initialize padding bytes for proper C struct alignment
+    config.ref._padding1 = 0;
+    config.ref._padding2 = 0;
+    config.ref._padding3 = 0;
     config.ref.lineWidth = lineWidth;
     config.ref.rightToLeft = rightToLeft;
     config.ref.tajweed = tajweed;
+    config.ref._padding4 = 0;
+    config.ref._padding5 = 0;
 
     final textPtr = text.toNativeUtf8();
 
@@ -645,9 +673,15 @@ class QuranRenderer {
     config.ref.textColor = textColor;
     config.ref.backgroundColor = backgroundColor;
     config.ref.justify = justify;
+    // Initialize padding bytes for proper C struct alignment
+    config.ref._padding1 = 0;
+    config.ref._padding2 = 0;
+    config.ref._padding3 = 0;
     config.ref.lineWidth = lineWidth;
     config.ref.rightToLeft = rightToLeft;
     config.ref.tajweed = tajweed;
+    config.ref._padding4 = 0;
+    config.ref._padding5 = 0;
 
     final textPtr = text.toNativeUtf8();
 
