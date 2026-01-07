@@ -204,7 +204,10 @@ class _QuranPageWidgetState extends State<QuranPageWidget> {
           });
         }
 
-        if (_isLoading || _image == null) {
+        // Show spinner while loading OR if we need a new render (dimensions changed)
+        final needsRerender =
+            renderWidth != _lastWidth || renderHeight != _lastHeight;
+        if (_isLoading || _image == null || needsRerender) {
           return Center(
             child: CircularProgressIndicator(
               color: Theme.of(context).colorScheme.primary,
