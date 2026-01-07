@@ -10,6 +10,7 @@ class AyahWidget extends StatefulWidget {
   final int fontSize;
   final int backgroundColor;
   final int renderWidth;
+  final bool justify;
 
   const AyahWidget({
     super.key,
@@ -17,6 +18,7 @@ class AyahWidget extends StatefulWidget {
     required this.fontSize,
     required this.backgroundColor,
     required this.renderWidth,
+    this.justify = true,
   });
 
   @override
@@ -33,6 +35,7 @@ class _AyahWidgetState extends State<AyahWidget> {
   int _lastFontSize = 0;
   int _lastWidth = 0;
   int _lastBgColor = 0;
+  bool _lastJustify = true;
 
   @override
   void didChangeDependencies() {
@@ -50,7 +53,8 @@ class _AyahWidgetState extends State<AyahWidget> {
     return widget.ayahText != _lastAyahText ||
         widget.fontSize != _lastFontSize ||
         widget.renderWidth != _lastWidth ||
-        widget.backgroundColor != _lastBgColor;
+        widget.backgroundColor != _lastBgColor ||
+        widget.justify != _lastJustify;
   }
 
   void _renderIfNeeded() {
@@ -98,7 +102,7 @@ class _AyahWidgetState extends State<AyahWidget> {
         fontSize: widget.fontSize,
         textColor: 0, // Auto-detect
         backgroundColor: widget.backgroundColor,
-        justify: true,
+        justify: widget.justify,
         lineWidth: width
             .toDouble(), // Explicitly set line width to buffer width
         rightToLeft: true,
@@ -116,6 +120,7 @@ class _AyahWidgetState extends State<AyahWidget> {
           _lastFontSize = widget.fontSize;
           _lastWidth = widget.renderWidth;
           _lastBgColor = widget.backgroundColor;
+          _lastJustify = widget.justify;
         });
       }
     } catch (e) {
@@ -196,6 +201,7 @@ class SurahTextWidget extends StatefulWidget {
   final int fontSize;
   final int lightBackgroundColor;
   final int darkBackgroundColor;
+  final bool justify;
 
   const SurahTextWidget({
     super.key,
@@ -203,6 +209,7 @@ class SurahTextWidget extends StatefulWidget {
     this.fontSize = 48,
     this.lightBackgroundColor = 0xFFFFFFFF, // White (RRGGBBAA format)
     this.darkBackgroundColor = 0x1E1E1EFF, // Dark gray (RRGGBBAA format)
+    this.justify = true,
   });
 
   @override
@@ -295,12 +302,13 @@ class _SurahTextWidgetState extends State<SurahTextWidget> {
             itemBuilder: (context, index) {
               return AyahWidget(
                 key: ValueKey(
-                  'ayah_${widget.surahNumber}_${index}_${widget.fontSize}',
+                  'ayah_${widget.surahNumber}_${index}_${widget.fontSize}_${widget.justify}',
                 ),
                 ayahText: _ayahs![index],
                 fontSize: widget.fontSize,
                 backgroundColor: bgColor,
                 renderWidth: renderWidth,
+                justify: widget.justify,
               );
             },
           ),
@@ -327,6 +335,7 @@ class SurahTextPage extends StatefulWidget {
 
 class _SurahTextPageState extends State<SurahTextPage> {
   int _fontSize = 48;
+  bool _justifyEnabled = true;
   static const int _minFontSize = 24;
   static const int _maxFontSize = 96;
   static const int _fontSizeStep = 8;
@@ -361,6 +370,19 @@ class _SurahTextPageState extends State<SurahTextPage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
           IconButton(
+            icon: Icon(
+              _justifyEnabled
+                  ? Icons.format_align_justify
+                  : Icons.format_align_left,
+            ),
+            tooltip: _justifyEnabled ? 'Justify: On' : 'Justify: Off',
+            onPressed: () {
+              setState(() {
+                _justifyEnabled = !_justifyEnabled;
+              });
+            },
+          ),
+          IconButton(
             icon: const Icon(Icons.text_decrease),
             onPressed: _fontSize > _minFontSize ? _decreaseFontSize : null,
             tooltip: 'Decrease text size',
@@ -384,6 +406,7 @@ class _SurahTextPageState extends State<SurahTextPage> {
       body: SurahTextWidget(
         surahNumber: widget.surahNumber,
         fontSize: _fontSize,
+        justify: _justifyEnabled,
       ),
     );
   }

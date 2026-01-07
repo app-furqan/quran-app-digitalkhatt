@@ -7,6 +7,7 @@ import 'quran_renderer.dart';
 class QuranPageWidget extends StatefulWidget {
   final int pageIndex;
   final bool tajweed;
+  final bool justify;
   final int fontSize; // 0 = auto-fit (default), or specific px size
   final int lightBackgroundColor;
   final int darkBackgroundColor;
@@ -17,6 +18,7 @@ class QuranPageWidget extends StatefulWidget {
     super.key,
     required this.pageIndex,
     this.tajweed = true,
+    this.justify = true,
     this.fontSize = 0, // 0 = auto-fit to screen
     this.lightBackgroundColor = 0xFFFFFFFF, // White (RRGGBBAA format)
     this.darkBackgroundColor = 0x000000FF, // True black (RRGGBBAA format)
@@ -41,6 +43,7 @@ class _QuranPageWidgetState extends State<QuranPageWidget> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.pageIndex != widget.pageIndex ||
         oldWidget.tajweed != widget.tajweed ||
+        oldWidget.justify != widget.justify ||
         oldWidget.fontSize != widget.fontSize ||
         oldWidget.lightBackgroundColor != widget.lightBackgroundColor ||
         oldWidget.darkBackgroundColor != widget.darkBackgroundColor ||
@@ -85,6 +88,7 @@ class _QuranPageWidgetState extends State<QuranPageWidget> {
         width: width,
         height: height,
         tajweed: widget.tajweed,
+        justify: widget.justify,
         fontSize: widget.fontSize,
         backgroundColor: bgColor,
         useForeground: false,

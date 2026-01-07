@@ -100,8 +100,10 @@ class QuranReaderPage extends StatefulWidget {
 
 class _QuranReaderPageState extends State<QuranReaderPage> {
   final PageController _pageController = PageController();
+  final TextEditingController _pageNumberController = TextEditingController();
   int _currentPage = 0;
   bool _tajweedEnabled = true;
+  bool _justifyEnabled = true;
   int _fontSize = 0; // 0 = auto-fit (default)
   double _lineHeightDivisor =
       0.0; // 0 = auto (10.0 for regular, 7.5 for Fatiha)
@@ -115,11 +117,19 @@ class _QuranReaderPageState extends State<QuranReaderPage> {
   @override
   void dispose() {
     _pageController.dispose();
+    _pageNumberController.dispose();
     super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _pageNumberController.text = '${_currentPage + 1}';
   }
 
   void _goToPage(int page) {
     if (page >= 0 && page < totalPages) {
+      _pageNumberController.text = '${page + 1}';
       _pageController.animateToPage(
         page,
         duration: const Duration(milliseconds: 300),
@@ -128,46 +138,12 @@ class _QuranReaderPageState extends State<QuranReaderPage> {
     }
   }
 
-  void _showGoToPageDialog() {
-    final controller = TextEditingController(text: '${_currentPage + 1}');
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Go to Page'),
-        content: TextField(
-          controller: controller,
-          keyboardType: TextInputType.number,
-          decoration: InputDecoration(
-            labelText: 'Page (1-$totalPages)',
-            border: const OutlineInputBorder(),
-          ),
-          autofocus: true,
-          onSubmitted: (value) {
-            final page = int.tryParse(value);
-            if (page != null && page >= 1 && page <= totalPages) {
-              Navigator.pop(context);
-              _goToPage(page - 1);
-            }
-          },
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () {
-              final page = int.tryParse(controller.text);
-              if (page != null && page >= 1 && page <= totalPages) {
-                Navigator.pop(context);
-                _goToPage(page - 1);
-              }
-            },
-            child: const Text('Go'),
-          ),
-        ],
-      ),
-    );
+  void _jumpToPageFromInput() {
+    final raw = _pageNumberController.text.trim();
+    final page = int.tryParse(raw);
+    if (page == null) return;
+    if (page < 1 || page > totalPages) return;
+    _goToPage(page - 1);
   }
 
   void _showSurahList() {
@@ -259,6 +235,20 @@ class _QuranReaderPageState extends State<QuranReaderPage> {
                     });
                   },
                 ),
+                // Justification toggle
+                SwitchListTile(
+                  secondary: const Icon(Icons.format_align_justify),
+                  title: const Text('Justify Text'),
+                  subtitle: const Text('Enable kashida justification'),
+                  value: _justifyEnabled,
+                  onChanged: (value) {
+                    setModalState(() {
+                      setState(() {
+                        _justifyEnabled = value;
+                      });
+                    });
+                  },
+                ),
                 const Divider(),
                 // Line height divisor
                 ListTile(
@@ -310,41 +300,9 @@ class _QuranReaderPageState extends State<QuranReaderPage> {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.first_page),
-          tooltip: 'First page',
-          onPressed: () => _goToPage(0),
-        ),
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              icon: const Icon(Icons.chevron_left),
-              tooltip: 'Next page (RTL)',
-              onPressed: _currentPage < totalPages - 1
-                  ? () => _goToPage(_currentPage + 1)
-                  : null,
-            ),
-            GestureDetector(
-              onTap: _showGoToPageDialog,
-              child: Text('${_currentPage + 1} / $totalPages'),
-            ),
-            IconButton(
-              icon: const Icon(Icons.chevron_right),
-              tooltip: 'Previous page (RTL)',
-              onPressed: _currentPage > 0
-                  ? () => _goToPage(_currentPage - 1)
-                  : null,
-            ),
-          ],
-        ),
+        title: const Text('Quran Reader'),
         centerTitle: true,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.last_page),
-            tooltip: 'Last page',
-            onPressed: () => _goToPage(totalPages - 1),
-          ),
           // Surah list button
           IconButton(
             icon: const Icon(Icons.list),
@@ -359,22 +317,90 @@ class _QuranReaderPageState extends State<QuranReaderPage> {
           ),
         ],
       ),
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: BottomAppBar(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+            child: Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.first_page),
+                  tooltip: 'First page',
+                  onPressed: _currentPage > 0 ? () => _goToPage(0) : null,
+                ),
+                IconButton(
+                  icon: const Icon(Icons.chevron_left),
+                  tooltip: 'Next page (RTL)',
+                  onPressed: _currentPage < totalPages - 1
+                      ? () => _goToPage(_currentPage + 1)
+                      : null,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        width: 84,
+                        child: TextField(
+                          controller: _pageNumberController,
+                          keyboardType: TextInputType.number,
+                          textAlign: TextAlign.center,
+                          decoration: const InputDecoration(
+                            isDense: true,
+                            border: OutlineInputBorder(),
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 10,
+                            ),
+                          ),
+                          onSubmitted: (_) => _jumpToPageFromInput(),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text('/ $totalPages'),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.chevron_right),
+                  tooltip: 'Previous page (RTL)',
+                  onPressed: _currentPage > 0
+                      ? () => _goToPage(_currentPage - 1)
+                      : null,
+                ),
+                IconButton(
+                  icon: const Icon(Icons.last_page),
+                  tooltip: 'Last page',
+                  onPressed: _currentPage < totalPages - 1
+                      ? () => _goToPage(totalPages - 1)
+                      : null,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
       body: PageView.builder(
         controller: _pageController,
         itemCount: totalPages,
         reverse: true, // RTL for Arabic
+        physics: const BouncingScrollPhysics(parent: PageScrollPhysics()),
         onPageChanged: (index) {
           setState(() {
             _currentPage = index;
+            _pageNumberController.text = '${_currentPage + 1}';
           });
         },
         itemBuilder: (context, index) {
           return QuranPageWidget(
             key: ValueKey(
-              'page_${index}_${_tajweedEnabled}_${_fontSize}_${_lineHeightDivisor}',
+              'page_${index}_${_tajweedEnabled}_${_justifyEnabled}_${_fontSize}_${_lineHeightDivisor}',
             ),
             pageIndex: index,
             tajweed: _tajweedEnabled,
+            justify: _justifyEnabled,
             fontSize: _fontSize,
             lightBackgroundColor: getLightBackgroundColor(),
             darkBackgroundColor: getDarkBackgroundColor(),
