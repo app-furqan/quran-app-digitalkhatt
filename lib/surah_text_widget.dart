@@ -387,13 +387,13 @@ class _SurahTextPageState extends State<SurahTextPage> {
             onPressed: _fontSize > _minFontSize ? _decreaseFontSize : null,
             tooltip: 'Decrease text size',
           ),
-          Padding(
+          Container(
             padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: Center(
-              child: Text(
-                '$_fontSize',
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
+            constraints: const BoxConstraints(minWidth: 32),
+            alignment: Alignment.center,
+            child: Text(
+              '$_fontSize',
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
           ),
           IconButton(
