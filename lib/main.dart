@@ -297,117 +297,178 @@ class _QuranReaderPageState extends State<QuranReaderPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
+
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: AppBar(
-        title: const Text('Quran Reader'),
-        centerTitle: true,
-        actions: [
-          // Surah list button
-          IconButton(
-            icon: const Icon(Icons.list),
-            tooltip: 'Surahs',
-            onPressed: _showSurahList,
-          ),
-          // Settings button
-          IconButton(
-            icon: const Icon(Icons.settings),
-            tooltip: 'Settings',
-            onPressed: _showSettings,
-          ),
-        ],
-      ),
-      bottomNavigationBar: SafeArea(
-        top: false,
-        child: BottomAppBar(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-            child: Row(
-              children: [
+      appBar: isLandscape
+          ? null
+          : AppBar(
+              title: const Text('Quran Reader'),
+              centerTitle: true,
+              actions: [
+                // Surah list button
                 IconButton(
-                  icon: const Icon(Icons.first_page),
-                  tooltip: 'First page',
-                  onPressed: _currentPage > 0 ? () => _goToPage(0) : null,
+                  icon: const Icon(Icons.list),
+                  tooltip: 'Surahs',
+                  onPressed: _showSurahList,
                 ),
+                // Settings button
                 IconButton(
-                  icon: const Icon(Icons.chevron_left),
-                  tooltip: 'Next page (RTL)',
-                  onPressed: _currentPage < totalPages - 1
-                      ? () => _goToPage(_currentPage + 1)
-                      : null,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SizedBox(
-                        width: 84,
-                        child: TextField(
-                          controller: _pageNumberController,
-                          keyboardType: TextInputType.number,
-                          textAlign: TextAlign.center,
-                          decoration: const InputDecoration(
-                            isDense: true,
-                            border: OutlineInputBorder(),
-                            contentPadding: EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 10,
-                            ),
-                          ),
-                          onSubmitted: (_) => _jumpToPageFromInput(),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text('/ $totalPages'),
-                    ],
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.chevron_right),
-                  tooltip: 'Previous page (RTL)',
-                  onPressed: _currentPage > 0
-                      ? () => _goToPage(_currentPage - 1)
-                      : null,
-                ),
-                IconButton(
-                  icon: const Icon(Icons.last_page),
-                  tooltip: 'Last page',
-                  onPressed: _currentPage < totalPages - 1
-                      ? () => _goToPage(totalPages - 1)
-                      : null,
+                  icon: const Icon(Icons.settings),
+                  tooltip: 'Settings',
+                  onPressed: _showSettings,
                 ),
               ],
             ),
+      body: Column(
+        children: [
+          if (isLandscape)
+            Material(
+              elevation: 4,
+              child: Container(
+                color: Theme.of(context).colorScheme.surface,
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.list, size: 20),
+                          tooltip: 'Surahs',
+                          onPressed: _showSurahList,
+                          padding: const EdgeInsets.all(8),
+                          constraints: const BoxConstraints(),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.settings, size: 20),
+                          tooltip: 'Settings',
+                          onPressed: _showSettings,
+                          padding: const EdgeInsets.all(8),
+                          constraints: const BoxConstraints(),
+                        ),
+                      ],
+                    ),
+                    Expanded(child: _buildNavigationControls(compact: true)),
+                  ],
+                ),
+              ),
+            ),
+          Expanded(
+            child: PageView.builder(
+              controller: _pageController,
+              itemCount: totalPages,
+              reverse: true, // RTL for Arabic
+              physics: const BouncingScrollPhysics(parent: PageScrollPhysics()),
+              onPageChanged: (index) {
+                setState(() {
+                  _currentPage = index;
+                  _pageNumberController.text = '${_currentPage + 1}';
+                });
+              },
+              itemBuilder: (context, index) {
+                return QuranPageWidget(
+                  key: ValueKey(
+                    'page_${index}_${_tajweedEnabled}_${_justifyEnabled}_${_fontSize}_${_lineHeightDivisor}',
+                  ),
+                  pageIndex: index,
+                  tajweed: _tajweedEnabled,
+                  justify: _justifyEnabled,
+                  fontSize: _fontSize,
+                  lightBackgroundColor: getLightBackgroundColor(),
+                  darkBackgroundColor: getDarkBackgroundColor(),
+                  lineHeightDivisor: _lineHeightDivisor,
+                );
+              },
+            ),
+          ),
+          if (!isLandscape)
+            SafeArea(
+              top: false,
+              child: BottomAppBar(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 6,
+                  ),
+                  child: _buildNavigationControls(compact: false),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNavigationControls({required bool compact}) {
+    return Row(
+      mainAxisAlignment: compact
+          ? MainAxisAlignment.end
+          : MainAxisAlignment.center,
+      children: [
+        IconButton(
+          icon: Icon(Icons.first_page, size: compact ? 20 : 24),
+          tooltip: 'First page',
+          onPressed: _currentPage > 0 ? () => _goToPage(0) : null,
+          padding: compact ? const EdgeInsets.all(4) : null,
+          constraints: compact ? const BoxConstraints() : null,
+        ),
+        IconButton(
+          icon: Icon(Icons.chevron_left, size: compact ? 20 : 24),
+          tooltip: 'Next page (RTL)',
+          onPressed: _currentPage < totalPages - 1
+              ? () => _goToPage(_currentPage + 1)
+              : null,
+          padding: compact ? const EdgeInsets.all(4) : null,
+          constraints: compact ? const BoxConstraints() : null,
+        ),
+        if (!compact) const SizedBox(width: 8),
+        SizedBox(
+          width: compact ? 60 : 84,
+          child: TextField(
+            controller: _pageNumberController,
+            keyboardType: TextInputType.number,
+            textAlign: TextAlign.center,
+            style: compact ? const TextStyle(fontSize: 12) : null,
+            decoration: InputDecoration(
+              isDense: true,
+              border: const OutlineInputBorder(),
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: compact ? 4 : 8,
+                vertical: compact ? 6 : 10,
+              ),
+            ),
+            onSubmitted: (_) => _jumpToPageFromInput(),
           ),
         ),
-      ),
-      body: PageView.builder(
-        controller: _pageController,
-        itemCount: totalPages,
-        reverse: true, // RTL for Arabic
-        physics: const BouncingScrollPhysics(parent: PageScrollPhysics()),
-        onPageChanged: (index) {
-          setState(() {
-            _currentPage = index;
-            _pageNumberController.text = '${_currentPage + 1}';
-          });
-        },
-        itemBuilder: (context, index) {
-          return QuranPageWidget(
-            key: ValueKey(
-              'page_${index}_${_tajweedEnabled}_${_justifyEnabled}_${_fontSize}_${_lineHeightDivisor}',
-            ),
-            pageIndex: index,
-            tajweed: _tajweedEnabled,
-            justify: _justifyEnabled,
-            fontSize: _fontSize,
-            lightBackgroundColor: getLightBackgroundColor(),
-            darkBackgroundColor: getDarkBackgroundColor(),
-            lineHeightDivisor: _lineHeightDivisor,
-          );
-        },
-      ),
+        SizedBox(width: compact ? 4 : 8),
+        Text(
+          '/ $totalPages',
+          style: compact ? const TextStyle(fontSize: 12) : null,
+        ),
+        if (!compact) const SizedBox(width: 8),
+        IconButton(
+          icon: Icon(Icons.chevron_right, size: compact ? 20 : 24),
+          tooltip: 'Previous page (RTL)',
+          onPressed: _currentPage > 0
+              ? () => _goToPage(_currentPage - 1)
+              : null,
+          padding: compact ? const EdgeInsets.all(4) : null,
+          constraints: compact ? const BoxConstraints() : null,
+        ),
+        IconButton(
+          icon: Icon(Icons.last_page, size: compact ? 20 : 24),
+          tooltip: 'Last page',
+          onPressed: _currentPage < totalPages - 1
+              ? () => _goToPage(totalPages - 1)
+              : null,
+          padding: compact ? const EdgeInsets.all(4) : null,
+          constraints: compact ? const BoxConstraints() : null,
+        ),
+      ],
     );
   }
 }
