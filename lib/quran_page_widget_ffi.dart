@@ -178,11 +178,18 @@ class _QuranPageWidgetState extends State<QuranPageWidget> {
         // Render at screen dimensions with extra height for scrolling
         final pixelRatio = MediaQuery.of(context).devicePixelRatio;
         final renderWidth = (constraints.maxWidth * pixelRatio).toInt();
-        // Add 20% extra height to allow scrolling to see full content
-        final renderHeight = (constraints.maxHeight * pixelRatio * 1.2).toInt();
+
+        // In landscape, we need much more height since the screen is wider
+        // In portrait, add extra height to ensure bottom ayahs don't cut off
+        final isLandscape = constraints.maxWidth > constraints.maxHeight;
+        final heightMultiplier = isLandscape ? 3.0 : 1.5;
+        final renderHeight =
+            (constraints.maxHeight * pixelRatio * heightMultiplier).toInt();
 
         final aspectRatio = constraints.maxWidth / constraints.maxHeight;
-        print('aspectRatio=$aspectRatio, size=${renderWidth}x$renderHeight');
+        print(
+          'aspectRatio=$aspectRatio, size=${renderWidth}x$renderHeight, landscape=$isLandscape',
+        );
 
         // Check if brightness changed (theme switch)
         final currentBrightness = Theme.of(context).brightness;
