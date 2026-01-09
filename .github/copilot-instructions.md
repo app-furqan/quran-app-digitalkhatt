@@ -1,4 +1,4 @@
-# Copilot Instructions for quran-app-android
+# Copilot Instructions for quran-app-digitalkhatt
 
 ## Updating Native Libraries from quran-renderer
 

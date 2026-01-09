@@ -86,8 +86,8 @@ final createRenderer = nativeLib
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/hussainak/quran-app-android.git
-   cd quran-app-android
+   git clone https://github.com/app-furqan/quran-app-digitalkhatt.git
+   cd quran-app-digitalkhatt
    ```
 
 2. **Install dependencies**
@@ -143,7 +143,7 @@ flutter build appbundle --release
 
 The native rendering libraries are managed in the repository using Git LFS. To update them:
 
-1. Build new libraries from [quran-renderer](https://github.com/hussainak/quran-renderer.git)
+1. Build new libraries from [quran-renderer](https://github.com/app-furqan/quran-renderer.git)
 2. Extract the release zip:
    ```bash
    unzip quran-renderer-release.zip
@@ -187,7 +187,7 @@ CREATE TABLE quran (
 ## 📁 Project Structure
 
 ```
-quran-app-android/
+quran-app-digitalkhatt/
 ├── android/                      # Android native code
 │   └── app/
 │       ├── libs/                 # Android native libraries (AAR)
@@ -223,7 +223,7 @@ quran-app-android/
 
 The native renderer is built from the open-source project:
 
-**Repository:** [https://github.com/hussainak/quran-renderer.git](https://github.com/hussainak/quran-renderer.git)
+**Repository:** [https://github.com/app-furqan/quran-renderer.git](https://github.com/app-furqan/quran-renderer.git)
 
 Features:
 - Digital Khatt font rendering engine
@@ -236,7 +236,7 @@ Features:
 
 1. **Clone the quran-renderer repository**
    ```bash
-   git clone https://github.com/hussainak/quran-renderer.git
+   git clone https://github.com/app-furqan/quran-renderer.git
    cd quran-renderer
    ```
 
