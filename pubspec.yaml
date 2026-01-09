@@ -1,5 +1,5 @@
-name: quran_app_android
-description: "A beautiful Flutter-based Quran reader application for Android with native rendering, Tajweed highlighting, and customizable font scaling."
+name: quran_app_digitalkhatt
+description: "A beautiful cross-platform Quran reader application with native C++ rendering via FFI, featuring the Digital Khatt font, Tajweed highlighting, and support for iOS and Android."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev

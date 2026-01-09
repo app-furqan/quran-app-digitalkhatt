@@ -1,6 +1,6 @@
-# Quran App
+# Quran App DigitalKhatt
 
-A beautiful cross-platform Quran reader application built with Flutter, featuring native C++ rendering with FFI for high-performance text rendering, Tajweed highlighting, and a clean user interface.
+A beautiful cross-platform Quran reader application built with Flutter, featuring native C++ rendering with FFI for high-performance text rendering, Tajweed highlighting, and the Digital Khatt font for authentic Arabic calligraphy.
 
 ![Flutter](https://img.shields.io/badge/Flutter-02569B?style=flat&logo=flutter&logoColor=white)
 ![Dart](https://img.shields.io/badge/Dart-0175C2?style=flat&logo=dart&logoColor=white)
