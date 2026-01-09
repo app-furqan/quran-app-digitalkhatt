@@ -8,6 +8,21 @@ A beautiful cross-platform Quran reader application built with Flutter, featurin
 ![Android](https://img.shields.io/badge/Android-3DDC84?style=flat&logo=android&logoColor=white)
 ![C++](https://img.shields.io/badge/C++-00599C?style=flat&logo=cplusplus&logoColor=white)
 
+## ⚠️ Project Status - DRAFT
+
+**This project is currently in DRAFT/EXPERIMENTAL status.**
+
+Please use this application intelligently and with caution. This is an early-stage development project and may contain bugs, incomplete features, or unexpected behavior. 
+
+**Important:**
+- ✅ Perform thorough testing before relying on this application
+- ✅ Verify all Quranic text against official sources
+- ✅ Report any issues or discrepancies you encounter
+- ⚠️ Not recommended for production use without extensive testing
+- ⚠️ Use at your own discretion and risk
+
+We welcome contributions, feedback, and bug reports to help improve this project.
+
 ## ✨ Features
 
 - 📖 **Complete Quran** - All 604 pages of the Holy Quran with Uthmani script
