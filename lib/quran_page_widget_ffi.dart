@@ -80,18 +80,29 @@ class _QuranPageWidgetState extends State<QuranPageWidget> {
         '_renderPage: isDark=$isDark, bgColor=0x${bgColor.toRadixString(16)}, tajweed=${widget.tajweed}',
       );
 
-      // Match native reference sizing behavior:
-      // - char_height ~= (width / 17) * 0.9
-      // - inter_line ~= height / 15
+      // Match reference app sizing:
+      //   char_height = (width / 17) * 0.9
+      //   inter_line  = height / 15
+      //   y_start     = inter_line * 0.72   (regular pages)
+      //   y_start    += 3.5 * inter_line     (Fatiha, pages 0-1)
       final effectiveFontSize = widget.fontSize > 0
           ? widget.fontSize
           : ((width / 17.0) * 0.9).round();
       final effectiveLineHeightDivisor = widget.lineHeightDivisor > 0
           ? widget.lineHeightDivisor
           : 15.0;
+      // Reference uses inter_line * 0.72 as top margin for all pages,
+      // plus 3.5 * inter_line extra for Fatiha (pages 0-1).
+      // Our renderer's auto (0) gives 0 for regular, 3.5 for Fatiha,
+      // so we explicitly pass 0.72 for regular pages.
+      final effectiveTopMarginLines = widget.topMarginLines > 0
+          ? widget.topMarginLines
+          : 0.72;
 
       print(
-        '_renderPage: effectiveFontSize=$effectiveFontSize, effectiveLineHeightDivisor=$effectiveLineHeightDivisor',
+        '_renderPage: effectiveFontSize=$effectiveFontSize, '
+        'effectiveLineHeightDivisor=$effectiveLineHeightDivisor, '
+        'effectiveTopMarginLines=$effectiveTopMarginLines',
       );
 
       // Render the page
@@ -107,7 +118,7 @@ class _QuranPageWidgetState extends State<QuranPageWidget> {
         backgroundColor: bgColor,
         useForeground: false,
         lineHeightDivisor: effectiveLineHeightDivisor,
-        topMarginLines: widget.topMarginLines,
+        topMarginLines: effectiveTopMarginLines,
       );
 
       print(
@@ -189,16 +200,32 @@ class _QuranPageWidgetState extends State<QuranPageWidget> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Render using full available viewport so orientation is reflected.
+        // Enforce golden-ratio page aspect ratio so that
+        // inter_line = height / 15 and char_height = (width / 17) * 0.9
+        // yield correct proportions matching the reference renderer.
+        const goldenRatio = 1.618033988749;
         final pixelRatio = MediaQuery.of(context).devicePixelRatio;
-        final targetDisplayWidth = constraints.maxWidth;
-        final targetDisplayHeight = constraints.maxHeight;
-        final renderWidth = (targetDisplayWidth * pixelRatio).toInt();
-        final renderHeight = (targetDisplayHeight * pixelRatio).toInt();
+        final viewportW = constraints.maxWidth;
+        final viewportH = constraints.maxHeight;
 
-        final aspectRatio = targetDisplayWidth / targetDisplayHeight;
+        // Fit the golden-ratio page within the viewport.
+        double pageW = viewportW;
+        double pageH = pageW * goldenRatio;
+        if (pageH > viewportH) {
+          // Viewport is shorter than golden-ratio page → fit by height.
+          pageH = viewportH;
+          pageW = pageH / goldenRatio;
+        }
+
+        final renderWidth = (pageW * pixelRatio).toInt();
+        final renderHeight = (pageH * pixelRatio).toInt();
+
+        final aspectRatio = pageW / pageH;
         print(
-          'aspectRatio=$aspectRatio, pageSize=${renderWidth}x$renderHeight',
+          'viewport=${viewportW.toStringAsFixed(0)}x${viewportH.toStringAsFixed(0)}  '
+          'page=${pageW.toStringAsFixed(0)}x${pageH.toStringAsFixed(0)}  '
+          'aspectRatio=${aspectRatio.toStringAsFixed(3)}  '
+          'render=${renderWidth}x$renderHeight',
         );
 
         // Check if brightness changed (theme switch)
@@ -232,18 +259,20 @@ class _QuranPageWidgetState extends State<QuranPageWidget> {
           );
         }
 
-        return ClipRect(
-          child: InteractiveViewer(
-            minScale: 0.5,
-            maxScale: 4.0,
-            panEnabled: true,
-            scaleEnabled: true,
-            constrained: true,
-            child: RawImage(
-              image: _image,
-              width: targetDisplayWidth,
-              height: targetDisplayHeight,
-              fit: BoxFit.fill,
+        return Center(
+          child: ClipRect(
+            child: InteractiveViewer(
+              minScale: 0.5,
+              maxScale: 4.0,
+              panEnabled: true,
+              scaleEnabled: true,
+              constrained: true,
+              child: RawImage(
+                image: _image,
+                width: pageW,
+                height: pageH,
+                fit: BoxFit.contain,
+              ),
             ),
           ),
         );
