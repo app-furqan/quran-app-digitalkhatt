@@ -11,8 +11,8 @@ class QuranPageWidget extends StatefulWidget {
   final int fontSize; // 0 = auto-fit (default), or specific px size
   final int lightBackgroundColor;
   final int darkBackgroundColor;
-  final double lineHeightDivisor; // 0 = auto (10.0 for regular, 7.5 for Fatiha)
-  final double topMarginLines; // 0 = auto (3.5 for Fatiha, 0 for others)
+  final double lineHeightDivisor; // EXTRA spacing: height / divisor (0 = none)
+  final double topMarginLines; // EXTRA top margin in line-heights (0 = none)
 
   const QuranPageWidget({
     super.key,
@@ -22,8 +22,8 @@ class QuranPageWidget extends StatefulWidget {
     this.fontSize = 0, // 0 = auto-fit to screen
     this.lightBackgroundColor = 0xFFFFFFFF, // White (RRGGBBAA format)
     this.darkBackgroundColor = 0x000000FF, // True black (RRGGBBAA format)
-    this.lineHeightDivisor = 0.0, // 0 = auto
-    this.topMarginLines = 0.0, // 0 = auto
+    this.lineHeightDivisor = 0.0, // 0 = no extra spacing
+    this.topMarginLines = 0.0, // 0 = no extra margin
   });
 
   @override
@@ -80,24 +80,20 @@ class _QuranPageWidgetState extends State<QuranPageWidget> {
         '_renderPage: isDark=$isDark, bgColor=0x${bgColor.toRadixString(16)}, tajweed=${widget.tajweed}',
       );
 
-      // Match reference app sizing:
+      // Let the native renderer handle all sizing (fontSize=0 → auto):
       //   char_height = (width / 17) * 0.9
-      //   inter_line  = height / 15
-      //   y_start     = inter_line * 0.72   (regular pages)
-      //   y_start    += 3.5 * inter_line     (Fatiha, pages 0-1)
+      //   inter_line, y_start, x_padding — all computed internally
+      // lineHeightDivisor = 0 means no EXTRA spacing (native has its own)
+      // topMarginLines = 0 means no extra margin (native has its own)
       final effectiveFontSize = widget.fontSize > 0
           ? widget.fontSize
-          : ((width / 17.0) * 0.9).round();
+          : 0; // Let native auto-compute
       final effectiveLineHeightDivisor = widget.lineHeightDivisor > 0
           ? widget.lineHeightDivisor
-          : 15.0;
-      // Reference uses inter_line * 0.72 as top margin for all pages,
-      // plus 3.5 * inter_line extra for Fatiha (pages 0-1).
-      // Our renderer's auto (0) gives 0 for regular, 3.5 for Fatiha,
-      // so we explicitly pass 0.72 for regular pages.
+          : 0.0; // No extra spacing — native handles it
       final effectiveTopMarginLines = widget.topMarginLines > 0
           ? widget.topMarginLines
-          : 0.72;
+          : 0.0; // No extra margin — native handles it
 
       print(
         '_renderPage: effectiveFontSize=$effectiveFontSize, '
@@ -200,31 +196,18 @@ class _QuranPageWidgetState extends State<QuranPageWidget> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Enforce golden-ratio page aspect ratio so that
-        // inter_line = height / 15 and char_height = (width / 17) * 0.9
-        // yield correct proportions matching the reference renderer.
-        const goldenRatio = 1.618033988749;
+        // Use full viewport dimensions — the native renderer internally
+        // computes fontSize, inter_line, y_start, x_padding from the
+        // actual bitmap width/height, so it adapts to both orientations.
         final pixelRatio = MediaQuery.of(context).devicePixelRatio;
-        final viewportW = constraints.maxWidth;
-        final viewportH = constraints.maxHeight;
-
-        // Fit the golden-ratio page within the viewport.
-        double pageW = viewportW;
-        double pageH = pageW * goldenRatio;
-        if (pageH > viewportH) {
-          // Viewport is shorter than golden-ratio page → fit by height.
-          pageH = viewportH;
-          pageW = pageH / goldenRatio;
-        }
+        final pageW = constraints.maxWidth;
+        final pageH = constraints.maxHeight;
 
         final renderWidth = (pageW * pixelRatio).toInt();
         final renderHeight = (pageH * pixelRatio).toInt();
 
-        final aspectRatio = pageW / pageH;
         print(
-          'viewport=${viewportW.toStringAsFixed(0)}x${viewportH.toStringAsFixed(0)}  '
-          'page=${pageW.toStringAsFixed(0)}x${pageH.toStringAsFixed(0)}  '
-          'aspectRatio=${aspectRatio.toStringAsFixed(3)}  '
+          'viewport=${pageW.toStringAsFixed(0)}x${pageH.toStringAsFixed(0)}  '
           'render=${renderWidth}x$renderHeight',
         );
 

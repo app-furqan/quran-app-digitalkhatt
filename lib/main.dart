@@ -106,7 +106,7 @@ class _QuranReaderPageState extends State<QuranReaderPage> {
   bool _justifyEnabled = true;
   int _fontSize = 0; // 0 = auto-fit (default)
   double _lineHeightDivisor =
-      0.0; // 0 = auto (10.0 for regular, 7.5 for Fatiha)
+      0.0; // 0 = no extra spacing (native handles defaults)
 
   static const int totalPages = 604;
 
@@ -263,7 +263,7 @@ class _QuranReaderPageState extends State<QuranReaderPage> {
                         max: 15,
                         divisions: 30,
                         label: _lineHeightDivisor == 0
-                            ? 'Auto'
+                            ? 'None'
                             : _lineHeightDivisor.toStringAsFixed(1),
                         onChanged: (value) {
                           setModalState(() {
@@ -274,14 +274,14 @@ class _QuranReaderPageState extends State<QuranReaderPage> {
                         },
                       ),
                       Text(
-                        'height / divisor = line height\nAuto: 10.0 for regular pages, 7.5 for Fatiha',
+                        'Extra line spacing = height / divisor\n0 = no extra spacing (renderer default)',
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ],
                   ),
                   trailing: Text(
                     _lineHeightDivisor == 0
-                        ? 'Auto'
+                        ? 'None'
                         : _lineHeightDivisor.toStringAsFixed(1),
                     style: Theme.of(context).textTheme.titleMedium,
                   ),

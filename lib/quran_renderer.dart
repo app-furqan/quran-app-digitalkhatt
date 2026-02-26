@@ -52,9 +52,9 @@ final class QuranRenderConfig extends Struct {
   @Bool()
   external bool useForeground; // true = dark mode (light text on dark bg)
   @Float()
-  external double lineHeightDivisor; // Line height = height / divisor (0 = auto: 10.0 for regular, 7.5 for Fatiha)
+  external double lineHeightDivisor; // EXTRA line spacing = height / divisor (0 = no extra spacing)
   @Float()
-  external double topMarginLines; // Top margin in line-heights for Fatiha (0 = auto: 3.5 for Fatiha, 0 for others)
+  external double topMarginLines; // EXTRA top margin in line-heights (0 = no extra margin)
 }
 
 /// Text rendering configuration
@@ -412,8 +412,9 @@ class QuranRenderer {
     int fontSize = 0, // 0 = auto-fit to screen (default)
     bool useForeground = false, // true = dark mode (light text on dark bg)
     double lineHeightDivisor =
-        0.0, // 0 = auto (10.0 for regular, 7.5 for Fatiha)
-    double topMarginLines = 0.0, // 0 = auto (3.5 for Fatiha, 0 for others)
+        0.0, // EXTRA line spacing = height / divisor (0 = no extra spacing)
+    double topMarginLines =
+        0.0, // EXTRA top margin in line-heights (0 = no extra margin)
   }) {
     _ensureInitialized();
 
