@@ -80,6 +80,20 @@ class _QuranPageWidgetState extends State<QuranPageWidget> {
         '_renderPage: isDark=$isDark, bgColor=0x${bgColor.toRadixString(16)}, tajweed=${widget.tajweed}',
       );
 
+      // Match native reference sizing behavior:
+      // - char_height ~= (width / 17) * 0.9
+      // - inter_line ~= height / 15
+      final effectiveFontSize = widget.fontSize > 0
+          ? widget.fontSize
+          : ((width / 17.0) * 0.9).round();
+      final effectiveLineHeightDivisor = widget.lineHeightDivisor > 0
+          ? widget.lineHeightDivisor
+          : 15.0;
+
+      print(
+        '_renderPage: effectiveFontSize=$effectiveFontSize, effectiveLineHeightDivisor=$effectiveLineHeightDivisor',
+      );
+
       // Render the page
       // NOTE: useForeground can override per-glyph colors (tajweed), so keep it
       // false and rely on the renderer's background-luminance auto logic.
@@ -89,10 +103,10 @@ class _QuranPageWidgetState extends State<QuranPageWidget> {
         height: height,
         tajweed: widget.tajweed,
         justify: widget.justify,
-        fontSize: widget.fontSize,
+        fontSize: effectiveFontSize,
         backgroundColor: bgColor,
         useForeground: false,
-        lineHeightDivisor: widget.lineHeightDivisor,
+        lineHeightDivisor: effectiveLineHeightDivisor,
         topMarginLines: widget.topMarginLines,
       );
 
@@ -175,20 +189,16 @@ class _QuranPageWidgetState extends State<QuranPageWidget> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Render at screen dimensions with extra height for scrolling
+        // Render using full available viewport so orientation is reflected.
         final pixelRatio = MediaQuery.of(context).devicePixelRatio;
-        final renderWidth = (constraints.maxWidth * pixelRatio).toInt();
+        final targetDisplayWidth = constraints.maxWidth;
+        final targetDisplayHeight = constraints.maxHeight;
+        final renderWidth = (targetDisplayWidth * pixelRatio).toInt();
+        final renderHeight = (targetDisplayHeight * pixelRatio).toInt();
 
-        // In landscape, we need much more height since the screen is wider
-        // In portrait, add extra height to ensure bottom ayahs don't cut off
-        final isLandscape = constraints.maxWidth > constraints.maxHeight;
-        final heightMultiplier = isLandscape ? 3.0 : 1.5;
-        final renderHeight =
-            (constraints.maxHeight * pixelRatio * heightMultiplier).toInt();
-
-        final aspectRatio = constraints.maxWidth / constraints.maxHeight;
+        final aspectRatio = targetDisplayWidth / targetDisplayHeight;
         print(
-          'aspectRatio=$aspectRatio, size=${renderWidth}x$renderHeight, landscape=$isLandscape',
+          'aspectRatio=$aspectRatio, pageSize=${renderWidth}x$renderHeight',
         );
 
         // Check if brightness changed (theme switch)
@@ -228,11 +238,12 @@ class _QuranPageWidgetState extends State<QuranPageWidget> {
             maxScale: 4.0,
             panEnabled: true,
             scaleEnabled: true,
-            constrained: false,
+            constrained: true,
             child: RawImage(
               image: _image,
-              width: constraints.maxWidth,
-              fit: BoxFit.fitWidth,
+              width: targetDisplayWidth,
+              height: targetDisplayHeight,
+              fit: BoxFit.fill,
             ),
           ),
         );
