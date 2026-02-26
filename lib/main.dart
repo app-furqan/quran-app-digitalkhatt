@@ -99,7 +99,7 @@ class QuranReaderPage extends StatefulWidget {
 }
 
 class _QuranReaderPageState extends State<QuranReaderPage> {
-  final PageController _pageController = PageController();
+  late PageController _pageController;
   final TextEditingController _pageNumberController = TextEditingController();
   int _currentPage = 0;
   bool _tajweedEnabled = true;
@@ -107,6 +107,7 @@ class _QuranReaderPageState extends State<QuranReaderPage> {
   int _fontSize = 0; // 0 = auto-fit (default)
   double _lineHeightDivisor =
       0.0; // 0 = no extra spacing (native handles defaults)
+  bool? _wasLandscape; // Track orientation changes
 
   static const int totalPages = 604;
 
@@ -124,6 +125,7 @@ class _QuranReaderPageState extends State<QuranReaderPage> {
   @override
   void initState() {
     super.initState();
+    _pageController = PageController(initialPage: _currentPage);
     _pageNumberController.text = '${_currentPage + 1}';
   }
 
@@ -300,6 +302,13 @@ class _QuranReaderPageState extends State<QuranReaderPage> {
     final isLandscape =
         MediaQuery.of(context).orientation == Orientation.landscape;
 
+    // On orientation change, recreate PageController to preserve current page
+    if (_wasLandscape != null && _wasLandscape != isLandscape) {
+      _pageController.dispose();
+      _pageController = PageController(initialPage: _currentPage);
+    }
+    _wasLandscape = isLandscape;
+
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: isLandscape
@@ -359,6 +368,7 @@ class _QuranReaderPageState extends State<QuranReaderPage> {
             ),
           Expanded(
             child: PageView.builder(
+              key: ValueKey('pageview_${isLandscape ? "land" : "port"}'),
               controller: _pageController,
               itemCount: totalPages,
               reverse: true, // RTL for Arabic
@@ -372,7 +382,7 @@ class _QuranReaderPageState extends State<QuranReaderPage> {
               itemBuilder: (context, index) {
                 return QuranPageWidget(
                   key: ValueKey(
-                    'page_${index}_${_tajweedEnabled}_${_justifyEnabled}_${_fontSize}_${_lineHeightDivisor}',
+                    'page_${index}_${_tajweedEnabled}_${_justifyEnabled}_${_fontSize}_${_lineHeightDivisor}_${isLandscape}',
                   ),
                   pageIndex: index,
                   tajweed: _tajweedEnabled,
